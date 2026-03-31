@@ -15,6 +15,11 @@ export default function (context: vscode.ExtensionContext) {
 					context,
 					ResolveCommandType.copy,
 				);
+
+				if (resolvedCommand === null) {
+					return; // User cancelled
+				}
+
 				vscode.env.clipboard.writeText(resolvedCommand);
 				vscode.window.showInformationMessage(
 					`${commands[i].name} Command Copied to Clipboard`,

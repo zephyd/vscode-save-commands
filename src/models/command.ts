@@ -89,31 +89,47 @@ export default class Command {
 	async resolveCommand(
 		context: ExtensionContext,
 		resolveCommandType: ResolveCommandType,
-	): Promise<string> {
+	): Promise<string | null> {
 		let resolvedCommand = this.command;
 
-		// 1. Handle Dynamic Interactive Parameters: ${Prompt Label}
-		const dynamicPromptRegex = /\${([^}]+)}/g;
-		const dynamicMatches = Array.from(resolvedCommand.matchAll(dynamicPromptRegex));
-		const dynamicInputs = new Map<string, string>();
-
-		for (const match of dynamicMatches) {
+		// 1. Handle Dynamic Interactive Parameters: {{Prompt:Default}}
+		const dynamicPromptRegex = /{{([^}]+)}}/g;
+		let match;
+		
+		// We use a copy of the command to process one by one
+		let currentResolved = resolvedCommand;
+		
+		// Reset regex index
+		dynamicPromptRegex.lastIndex = 0;
+		while ((match = dynamicPromptRegex.exec(currentResolved)) !== null) {
 			const fullMatch = match[0];
-			const promptLabel = match[1];
+			const content = match[1];
+			const parts = content.split(':');
+			const promptLabel = parts[0].trim();
+			const defaultValue = parts.length > 1 ? parts.slice(1).join(':').trim() : promptLabel;
 
-			if (!dynamicInputs.has(fullMatch)) {
-				const input = await takeSingleInput({
-					promptText: `${resolveCommandType} | ${this.name} | ${promptLabel}`,
-					placeholder: `Enter value for: ${promptLabel}`,
-				});
-				dynamicInputs.set(fullMatch, input);
+			const input = await takeSingleInput({
+				promptText: `${resolveCommandType} | ${this.name} | ${promptLabel}`,
+				placeholder: `Default: ${defaultValue}`,
+			});
+
+			if (input === undefined) {
+				return null; // Cancelled
 			}
-		}
 
-		// Replace all dynamic occurrences
-		resolvedCommand = resolvedCommand.replace(dynamicPromptRegex, (match) => {
-			return dynamicInputs.get(match) || match;
-		});
+			const finalInput = input === "" ? defaultValue : input;
+			
+			// Replace only the CURRENT match. Since matches are sequential, we can replace the first occurrence of fullMatch
+			// However, to be safe with identical matches, we should replace at the regex position.
+			const before = currentResolved.substring(0, match.index);
+			const after = currentResolved.substring(match.index + fullMatch.length);
+			currentResolved = before + finalInput + after;
+			
+			// Adjust regex index because the length changed
+			dynamicPromptRegex.lastIndex = before.length + finalInput.length;
+		}
+		
+		resolvedCommand = currentResolved;
 
 		// 2. Original Placeholder Type Logic ({{}}, {}, etc.)
 		const placeholderType = this.getPlaceholderType();
@@ -130,8 +146,13 @@ export default class Command {
 				promptText: `${resolveCommandType} | ${this.name} | ${placeholder} | `,
 				placeholder: `Enter ${placeholder}`,
 			});
+			if (input === undefined) {
+				return null; // Cancelled
+			}
+			// If user hits Enter with empty string, use the label as default
+			const finalInput = input === "" ? placeholder : input;
 			for (const match of matches[placeholder]) {
-				inputs[match] = input;
+				inputs[match] = finalInput;
 			}
 		}
 		resolvedCommand = resolvedCommand.replace(regex, (match) => {

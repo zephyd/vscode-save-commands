@@ -6,7 +6,7 @@ export default class FormViewProvider implements vscode.WebviewViewProvider {
 	private _view?: vscode.WebviewView;
 	private _pendingContext?: { stateType: StateType, folderId: string | null };
 
-	constructor(private readonly _context: vscode.ExtensionContext) {}
+	constructor(private readonly _context: vscode.ExtensionContext) { }
 
 	public resolveWebviewView(
 		webviewView: vscode.WebviewView,
@@ -39,11 +39,11 @@ export default class FormViewProvider implements vscode.WebviewViewProvider {
 
 	public prepareForm(stateType: StateType, folderId: string | null, command?: { id: string, name: string, command: string }) {
 		if (this._view) {
-			this._view.show(true); 
-			this._view.webview.postMessage({ 
-				type: "setContext", 
-				stateType, 
-				folderId, 
+			this._view.show(true);
+			this._view.webview.postMessage({
+				type: "setContext",
+				stateType,
+				folderId,
 				commandId: command?.id,
 				name: command?.name,
 				command: command?.command
@@ -119,7 +119,7 @@ export default class FormViewProvider implements vscode.WebviewViewProvider {
 					</div>
 					<div class="input-row">
 						<input type="text" id="command" placeholder="command (e.g. npm start)">
-						<div class="icon-btn" id="dynamic-helper" title="Convert selected to dynamic parameter" style="right: 4px;">ab</div>
+						<div class="icon-btn" id="dynamic-helper" title="Convert selected to dynamic parameter" style="right: 4px;">D</div>
 					</div>
 					<div class="footer">
 						<span id="scope-info">Target: Global</span>
@@ -171,9 +171,9 @@ export default class FormViewProvider implements vscode.WebviewViewProvider {
 						const start = cmdInput.selectionStart;
 						const end = cmdInput.selectionEnd;
 						const text = cmdInput.value;
-						const selected = text.substring(start, end) || 'result';
+						const selected = text.substring(start, end).trim();
 						
-						const replacement = '$' + '{请输入:' + selected + '}';
+						const replacement = '{{input:' + selected + '}}';
 						const newText = text.substring(0, start) + replacement + text.substring(end);
 						
 						cmdInput.value = newText;

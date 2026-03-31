@@ -28,22 +28,14 @@ export const singleInput = async (options: {
 	promptText: string;
 	placeholder: string;
 	initialValue?: string;
-}): Promise<string> => {
+}): Promise<string | undefined> => {
 	const { promptText, placeholder, initialValue } = options;
-	try {
-		const str = await vscode.window.showInputBox({
-			prompt: promptText,
-			placeHolder: placeholder,
-			value: initialValue ?? "",
-		});
-
-		if (!str) {
-			throw new ReadableError("No Input Captured");
-		}
-		return str;
-	} catch (err) {
-		throw new ReadableError("Error taking input");
-	}
+	const str = await vscode.window.showInputBox({
+		prompt: promptText,
+		placeHolder: placeholder,
+		value: initialValue ?? "",
+	});
+	return str;
 };
 
 const getCommandInputTypeLabel = (

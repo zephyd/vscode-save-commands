@@ -11,12 +11,17 @@ export default function (context: vscode.ExtensionContext) {
 			const commands = etter.getValue(context);
 			const i = commands.findIndex((d: Command) => d.id === item.id);
 			if (i > -1) {
-				const terminalId = `${commands[i].name}-${generateString(5)}`;
-				const terminal = vscode.window.createTerminal(terminalId);
 				const resolvedCommand = await commands[i].resolveCommand(
 					context,
 					ResolveCommandType.runNew,
 				);
+				
+				if (resolvedCommand === null) {
+					return; // User cancelled
+				}
+
+				const terminalId = `${commands[i].name}-${generateString(5)}`;
+				const terminal = vscode.window.createTerminal(terminalId);
 				terminal.sendText(resolvedCommand);
 				terminal.show();
 			} else {

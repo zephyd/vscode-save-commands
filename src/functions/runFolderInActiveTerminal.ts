@@ -43,6 +43,9 @@ export default function (context: vscode.ExtensionContext) {
             const resolvedCommands: string[] = [];
             for (const cmd of commandsToRun) {
                 const resolved = await cmd.resolveCommand(context, ResolveCommandType.runActive);
+                if (resolved === null) {
+                    return; // Transition out of execution if one is cancelled
+                }
                 resolvedCommands.push(resolved);
             }
 

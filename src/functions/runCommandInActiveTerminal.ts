@@ -16,11 +16,15 @@ export default function (context: vscode.ExtensionContext) {
 					throw new ReadableError("No Active Terminal Found");
 				}
 
-				// TODO: Come back later to this
 				const resolvedCommand = await commands[i].resolveCommand(
 					context,
 					ResolveCommandType.runActive,
 				);
+
+				if (resolvedCommand === null) {
+					return; // User cancelled
+				}
+
 				activeTerminal.sendText(resolvedCommand);
 				activeTerminal.show();
 			} else {
