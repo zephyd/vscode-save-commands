@@ -101,20 +101,25 @@ export default class FormViewProvider implements vscode.WebviewViewProvider {
 						cursor: pointer;
 						color: var(--vscode-button-background);
 						opacity: 0.8;
-						transition: opacity 0.2s;
+						transition: background 0.1s;
+						width: 22px;
+						height: 22px;
+						border-radius: 3px;
 					}
-					#save-trigger:hover { opacity: 1; }
+					#save-trigger:hover { 
+						background: var(--vscode-inputOption-activeBackground); 
+						opacity: 1; 
+					}
 				</style>
 			</head>
 			<body>
 				<div class="container">
 					<div class="input-row">
 						<input type="text" id="name" placeholder="label (e.g. My Script)">
-						<div class="icon-btn" title="Label Mode">Aa</div>
 					</div>
 					<div class="input-row">
 						<input type="text" id="command" placeholder="command (e.g. npm start)">
-						<div class="icon-btn" title="Format Mode">ab</div>
+						<div class="icon-btn" id="dynamic-helper" title="Convert selected to dynamic parameter" style="right: 4px;">ab</div>
 					</div>
 					<div class="footer">
 						<span id="scope-info">Target: Global</span>
@@ -154,12 +159,29 @@ export default class FormViewProvider implements vscode.WebviewViewProvider {
 								type: 'save',
 								value: { name, command, ...currentContext }
 							});
-							// Only clear if not editing, or clear anyway to reset state
 							document.getElementById('name').value = '';
 							document.getElementById('command').value = '';
-							currentContext.commandId = null; // Reset edit state after save
+							currentContext.commandId = null; 
 						}
 					};
+
+					// Dynamic Helper Logic
+					document.getElementById('dynamic-helper').addEventListener('click', () => {
+						const cmdInput = document.getElementById('command');
+						const start = cmdInput.selectionStart;
+						const end = cmdInput.selectionEnd;
+						const text = cmdInput.value;
+						const selected = text.substring(start, end) || 'result';
+						
+						const replacement = '$' + '{请输入:' + selected + '}';
+						const newText = text.substring(0, start) + replacement + text.substring(end);
+						
+						cmdInput.value = newText;
+						cmdInput.focus();
+						// Set selection after the inserted parameter
+						const newCursorPos = start + replacement.length;
+						cmdInput.setSelectionRange(newCursorPos, newCursorPos);
+					});
 
 					document.getElementById('save-trigger').addEventListener('click', submit);
 					document.body.addEventListener('keydown', (e) => {
