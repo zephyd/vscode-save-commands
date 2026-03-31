@@ -1,0 +1,8 @@
+<svg width="16" height="16" viewBox="0 0 16 16" fill="none" xmlns="http://www.w3.org/2000/svg">
+  <!-- Minimalist Play Triangle (Faded background) -->
+  <path d="M3.5 2.5L14 8L3.5 13.5V2.5Z" fill="currentColor" fill-opacity="0.15"/>
+  <!-- Integrated Terminal Prompt Character > (Bold focus) -->
+  <path d="M6.5 5.5L9 8L6.5 10.5" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/>
+  <!-- Sharp Outer Edge (Crisp look) -->
+  <path d="M3.5 2.5L14 8L3.5 13.5V2.5Z" stroke="currentColor" stroke-width="0.8" stroke-linejoin="round"/>
+</svg>

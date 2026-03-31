@@ -155,7 +155,7 @@ class TreeDataProvider implements vscode.TreeDataProvider<TreeItem> {
 				id: null,
 				label: "Global Commands",
 				tooltip: "",
-				contextValue: ContextValue.root,
+				contextValue: "root-global" as ContextValue,
 				children: globalTreeItems,
 				stateType: StateType.global,
 			}),
@@ -164,7 +164,7 @@ class TreeDataProvider implements vscode.TreeDataProvider<TreeItem> {
 				label: "Workspace Commands",
 				tooltip: "",
 				stateType: StateType.workspace,
-				contextValue: ContextValue.root,
+				contextValue: "root-workspace" as ContextValue,
 				children: workspaceTreeItems,
 			}),
 		];

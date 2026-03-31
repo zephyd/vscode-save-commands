@@ -1,0 +1,5 @@
+<svg width="16" height="16" viewBox="0 0 16 16" fill="none" xmlns="http://www.w3.org/2000/svg">
+  <!-- Light Theme: Subtle triangle, strong prompt -->
+  <path d="M4 3L13 8L4 13V3Z" stroke="#333333" stroke-width="1" stroke-linejoin="round" stroke-opacity="0.15"/>
+  <path d="M6.5 5.5L9 8L6.5 10.5" stroke="#111111" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+</svg>

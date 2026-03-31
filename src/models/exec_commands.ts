@@ -15,4 +15,6 @@ export enum ExecCommands {
 	import = "save-commands.import",
 	runFolder = "save-commands.runFolder",
 	runFolderInActiveTerminal = "save-commands.runFolderInActiveTerminal",
+	openConfigFile = "save-commands.openConfigFile",
+	openGlobalConfigFile = "save-commands.openGlobalConfigFile",
 }

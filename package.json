@@ -1,7 +1,7 @@
 {
-  "name": "save-commands",
-  "displayName": "Save Commands",
-  "description": "Simple VSCode Extension to save and execute terminal commands.",
+  "name": "save-commands-enhanced",
+  "displayName": "Save Commands Enhanced",
+  "description": "Enhanced extension to save, organize and execute terminal commands efficiently.",
   "icon": "media/save-commands.png",
   "version": "1.2.0",
   "engines": {
@@ -19,7 +19,7 @@
   "main": "./dist/extension.js",
   "contributes": {
     "configuration": {
-      "title": "Save Commands",
+      "title": "Save Commands Enhanced",
       "properties": {
         "save-commands.placeholderType": {
           "type": "string",
@@ -175,13 +175,43 @@
           "light": "resources/light/run_active.svg",
           "dark": "resources/dark/run_active.svg"
         }
+      },
+      {
+        "command": "save-commands.openConfigFile",
+        "title": "Open Workspace Config (JSON)",
+        "category": "Save Commands Enhanced",
+        "icon": {
+          "light": "resources/light/config.svg",
+          "dark": "resources/dark/config.svg"
+        }
+      },
+      {
+        "command": "save-commands.openGlobalConfigFile",
+        "title": "Open Global Config (JSON)",
+        "category": "Save Commands Enhanced",
+        "icon": {
+          "light": "resources/light/config.svg",
+          "dark": "resources/dark/config.svg"
+        }
       }
     ],
+    "viewContainers": {
+      "activitybar": [
+        {
+          "id": "save-commands-container",
+          "title": "Save Commands Enhanced",
+          "icon": {
+            "light": "resources/light/enhanced_run.svg",
+            "dark": "resources/dark/enhanced_run.svg"
+          }
+        }
+      ]
+    },
     "views": {
-      "explorer": [
+      "save-commands-container": [
         {
           "id": "save-commands-view",
-          "name": "Saved Commands"
+          "name": "Enhanced Commands"
         }
       ]
     },
@@ -259,7 +289,7 @@
         {
           "command": "save-commands.refreshView",
           "when": "view == save-commands-view",
-          "group": "navigation"
+          "group": "navigation@1"
         }
       ],
       "view/item/context": [
@@ -307,22 +337,32 @@
         {
           "command": "save-commands.addCommand",
           "group": "inline",
-          "when": "view == save-commands-view && viewItem == root || viewItem == folder"
+          "when": "view == save-commands-view && viewItem =~ /root/ || viewItem == folder"
         },
         {
           "command": "save-commands.deleteCommands",
-          "when": "view == save-commands-view && viewItem == root"
+          "when": "view == save-commands-view && viewItem =~ /root/"
         },
         {
           "command": "save-commands.addFolder",
           "group": "inline",
-          "when": "view == save-commands-view && viewItem == root || viewItem == folder"
+          "when": "view == save-commands-view && viewItem =~ /root/ || viewItem == folder"
+        },
+        {
+          "command": "save-commands.openGlobalConfigFile",
+          "group": "inline",
+          "when": "view == save-commands-view && viewItem == root-global"
+        },
+        {
+          "command": "save-commands.openConfigFile",
+          "group": "inline",
+          "when": "view == save-commands-view && viewItem == root-workspace"
         }
       ]
     }
   },
   "scripts": {
-    "vscode:prepublish": "yarn run package",
+    "vscode:prepublish": "npm run package",
     "compile": "webpack --config ./build/node-extension.webpack.config.js",
     "watch": "webpack --watch --config ./build/node-extension.webpack.config.js",
     "package": "webpack --mode production --devtool hidden-source-map --config ./build/node-extension.webpack.config.js",
@@ -358,7 +398,7 @@
     "url": "https://github.com/codectyl/vscode-save-commands"
   },
   "license": "MIT",
-  "publisher": "deepakgupta191199",
+  "publisher": "zephyd",
   "dependencies": {
     "class-transformer": "^0.5.1",
     "reflect-metadata": "^0.1.13"

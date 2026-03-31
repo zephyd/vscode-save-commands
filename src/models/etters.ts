@@ -1,5 +1,8 @@
 import type { ExtensionContext, Memento } from "vscode";
 import type { JSONObj } from "./base_types";
+import * as fs from "node:fs";
+import * as path from "node:path";
+import * as vscode from "vscode";
 
 export enum StateType {
 	global = "Global",
@@ -22,13 +25,24 @@ export class ExtensionContextListEtter<T extends Serializable> {
 		this.deserializer = deserializer;
 	}
 
-	private getState(context: ExtensionContext, stateType: StateType): Memento {
-		switch (stateType) {
-			case StateType.global:
-				return context.globalState;
-			case StateType.workspace:
-				return context.workspaceState;
+	private getStoragePath(context: ExtensionContext, stateType: StateType): string {
+		if (stateType === StateType.workspace) {
+			const workspaceFolder = vscode.workspace.workspaceFolders?.[0];
+			if (!workspaceFolder) {
+				throw new Error("No workspace folder found for Workspace storage");
+			}
+			const vscodePath = path.join(workspaceFolder.uri.fsPath, ".vscode");
+			if (!fs.existsSync(vscodePath)) {
+				fs.mkdirSync(vscodePath, { recursive: true });
+			}
+			return path.join(vscodePath, `save-commands-${this.key}.json`);
 		}
+		// Global storage
+		const globalPath = context.globalStorageUri.fsPath;
+		if (!fs.existsSync(globalPath)) {
+			fs.mkdirSync(globalPath, { recursive: true });
+		}
+		return path.join(globalPath, `save-commands-${this.key}.json`);
 	}
 
 	global: IEtter<Array<T>> = {
@@ -50,9 +64,18 @@ export class ExtensionContextListEtter<T extends Serializable> {
 	};
 
 	private getValue(context: ExtensionContext, stateType: StateType): Array<T> {
-		const values =
-			this.getState(context, stateType).get<Array<JSONObj>>(this.key) ?? [];
-		return values.map((value) => this.deserializer(value));
+		const filePath = this.getStoragePath(context, stateType);
+		if (!fs.existsSync(filePath)) {
+			return [];
+		}
+		try {
+			const content = fs.readFileSync(filePath, "utf8");
+			const values = JSON.parse(content) as Array<JSONObj>;
+			return values.map((value) => this.deserializer(value));
+		} catch (e) {
+			console.error(`Error reading storage file ${filePath}:`, e);
+			return [];
+		}
 	}
 
 	private async setValue(
@@ -60,12 +83,12 @@ export class ExtensionContextListEtter<T extends Serializable> {
 		newValue: Array<T>,
 		stateType: StateType,
 	): Promise<void> {
-		await this.getState(context, stateType).update(
-			this.key,
-			newValue.map((v) => v.toJson()),
-		);
-		if (stateType === StateType.global) {
-			context.globalState.setKeysForSync([this.key]);
+		const filePath = this.getStoragePath(context, stateType);
+		try {
+			const content = JSON.stringify(newValue.map((v) => v.toJson()), null, 2);
+			fs.writeFileSync(filePath, content, "utf8");
+		} catch (e) {
+			console.error(`Error writing storage file ${filePath}:`, e);
 		}
 	}
 }
