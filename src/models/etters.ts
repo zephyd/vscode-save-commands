@@ -25,11 +25,11 @@ export class ExtensionContextListEtter<T extends Serializable> {
 		this.deserializer = deserializer;
 	}
 
-	private getStoragePath(context: ExtensionContext, stateType: StateType): string {
+	private getStoragePath(context: ExtensionContext, stateType: StateType): string | null {
 		if (stateType === StateType.workspace) {
 			const workspaceFolder = vscode.workspace.workspaceFolders?.[0];
 			if (!workspaceFolder) {
-				throw new Error("No workspace folder found for Workspace storage");
+				return null;
 			}
 			const vscodePath = path.join(workspaceFolder.uri.fsPath, ".vscode");
 			if (!fs.existsSync(vscodePath)) {
@@ -65,7 +65,7 @@ export class ExtensionContextListEtter<T extends Serializable> {
 
 	private getValue(context: ExtensionContext, stateType: StateType): Array<T> {
 		const filePath = this.getStoragePath(context, stateType);
-		if (!fs.existsSync(filePath)) {
+		if (!filePath || !fs.existsSync(filePath)) {
 			return [];
 		}
 		try {
@@ -84,6 +84,9 @@ export class ExtensionContextListEtter<T extends Serializable> {
 		stateType: StateType,
 	): Promise<void> {
 		const filePath = this.getStoragePath(context, stateType);
+		if (!filePath) {
+			return;
+		}
 		try {
 			const content = JSON.stringify(newValue.map((v) => v.toJson()), null, 2);
 			fs.writeFileSync(filePath, content, "utf8");

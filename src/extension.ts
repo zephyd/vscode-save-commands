@@ -23,18 +23,21 @@ import DragAndDropController from "./DragAndDropController";
 import * as fs from "node:fs";
 import { StateType } from "./models/etters";
 import Command from "./models/command";
+import FormViewProvider from "./FormViewProvider";
 
 export function activate(context: vscode.ExtensionContext) {
 	const treeView = new TreeDataProvider(context);
 	const treeDnDController = new DragAndDropController(context);
+	const formViewProvider = new FormViewProvider(context);
 
-	// biome-ignore lint/suspicious/noExplicitAny: Needed
+	vscode.window.registerWebviewViewProvider(FormViewProvider.viewType, formViewProvider);
+
 	const callbacks: Record<ExecCommands, (...args: any[]) => any> = {
-		[ExecCommands.addCommand]: addCommandFn(context),
+		[ExecCommands.addCommand]: addCommandFn(formViewProvider),
 		[ExecCommands.deleteCommand]: deleteCommandFn(context),
 		[ExecCommands.runCommand]: runCommandFn(context),
 		[ExecCommands.deleteCommands]: deleteCommandsFn(context),
-		[ExecCommands.editCommand]: editCommandFn(context),
+		[ExecCommands.editCommand]: editCommandFn(context, formViewProvider),
 		[ExecCommands.copyCommand]: copyCommandFn(context),
 		[ExecCommands.runCommandInActiveTerminal]:
 			runCommandInActiveTerminalFn(context),
@@ -55,11 +58,55 @@ export function activate(context: vscode.ExtensionContext) {
 		}
 	};
 
+	vscode.commands.registerCommand("save-commands.handleFormSubmit", async (data: { name: string, command: string, stateType: StateType, folderId: string | null, commandId?: string }) => {
+		try {
+			const { name, command, stateType, folderId, commandId } = data;
+			const etter = stateType === StateType.global ? Command.etters.global : Command.etters.workspace;
+			const currentCommands = etter.getValue(context);
+			
+			if (commandId) {
+				// UPDATE MODE
+				const idx = currentCommands.findIndex(c => c.id === commandId);
+				if (idx > -1) {
+					currentCommands[idx].name = name.trim();
+					currentCommands[idx].command = command.trim();
+					// Keep other properties like parentId unless we want to change them
+					vscode.window.showInformationMessage(`Updated Command: ${name}`);
+				}
+			} else {
+				// CREATE MODE
+				const placeholderType = currentCommands.length > 0 
+					? currentCommands[0].getPlaceholderType() 
+					: Command.fromJson({}).getPlaceholderType();
+
+				const newCmd = Command.create({
+					name: name.trim(),
+					command: command.trim(),
+					parentFolderId: folderId,
+					placeholderType: placeholderType
+				});
+				currentCommands.push(newCmd);
+				vscode.window.showInformationMessage(`Added Command: ${name}`);
+			}
+			
+			etter.setValue(context, currentCommands);
+			treeView.refresh();
+		} catch (e) {
+			vscode.window.showErrorMessage(`Failed to save: ${e}`);
+		}
+	});
+
 	vscode.commands.registerCommand("save-commands.openFileInternal", async (stateType: StateType) => {
 		try {
 			const etter = Command.etters;
 			// @ts-ignore
 			const filePath = etter.getStoragePath(context, stateType);
+
+			if (!filePath) {
+				vscode.window.showWarningMessage(`No workspace open to manage ${stateType} config.`);
+				return;
+			}
+
 			if (!fs.existsSync(filePath)) {
 				fs.writeFileSync(filePath, "[]", "utf8");
 			}
@@ -94,5 +141,4 @@ export function activate(context: vscode.ExtensionContext) {
 	context.subscriptions.push(...subscriptions);
 }
 
-// this method is called when your extension is deactivated
 export function deactivate() { }

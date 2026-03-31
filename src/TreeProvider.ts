@@ -159,15 +159,21 @@ class TreeDataProvider implements vscode.TreeDataProvider<TreeItem> {
 				children: globalTreeItems,
 				stateType: StateType.global,
 			}),
-			new TreeItem({
-				id: null,
-				label: "Workspace Commands",
-				tooltip: "",
-				stateType: StateType.workspace,
-				contextValue: "root-workspace" as ContextValue,
-				children: workspaceTreeItems,
-			}),
 		];
+
+		const hasWorkspace = vscode.workspace.workspaceFolders && vscode.workspace.workspaceFolders.length > 0;
+		if (hasWorkspace) {
+			this.data.push(
+				new TreeItem({
+					id: null,
+					label: "Workspace Commands",
+					tooltip: "",
+					stateType: StateType.workspace,
+					contextValue: "root-workspace" as ContextValue,
+					children: workspaceTreeItems,
+				}),
+			);
+		}
 	}
 
 	refresh(): void {

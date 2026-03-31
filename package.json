@@ -195,15 +195,12 @@
         }
       }
     ],
-    "viewContainers": {
+    "viewsContainers": {
       "activitybar": [
         {
           "id": "save-commands-container",
           "title": "Save Commands Enhanced",
-          "icon": {
-            "light": "resources/light/enhanced_run.svg",
-            "dark": "resources/dark/enhanced_run.svg"
-          }
+          "icon": "resources/dark/enhanced_run.svg"
         }
       ]
     },
@@ -211,7 +208,15 @@
       "save-commands-container": [
         {
           "id": "save-commands-view",
-          "name": "Enhanced Commands"
+          "name": "Commands",
+          "icon": "resources/enhanced_run.svg"
+        },
+        {
+          "id": "save-commands-form-view",
+          "name": "Add / Edit Command",
+          "type": "webview",
+          "visibility": "collapsed",
+          "icon": "resources/config.svg"
         }
       ]
     },

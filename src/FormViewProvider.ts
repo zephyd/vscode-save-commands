@@ -1,0 +1,172 @@
+import * as vscode from "vscode";
+import { StateType } from "./models/etters";
+
+export default class FormViewProvider implements vscode.WebviewViewProvider {
+	public static readonly viewType = "save-commands-form-view";
+	private _view?: vscode.WebviewView;
+	private _pendingContext?: { stateType: StateType, folderId: string | null };
+
+	constructor(private readonly _context: vscode.ExtensionContext) {}
+
+	public resolveWebviewView(
+		webviewView: vscode.WebviewView,
+		context: vscode.WebviewViewResolveContext,
+		_token: vscode.CancellationToken,
+	) {
+		this._view = webviewView;
+
+		webviewView.webview.options = {
+			enableScripts: true,
+			localResourceRoots: [this._context.extensionUri],
+		};
+
+		webviewView.webview.html = this._getHtmlForWebview(webviewView.webview);
+
+		if (this._pendingContext) {
+			this.prepareForm(this._pendingContext.stateType, this._pendingContext.folderId);
+			this._pendingContext = undefined;
+		}
+
+		webviewView.webview.onDidReceiveMessage(async (data) => {
+			switch (data.type) {
+				case "save": {
+					vscode.commands.executeCommand("save-commands.handleFormSubmit", data.value);
+					break;
+				}
+			}
+		});
+	}
+
+	public prepareForm(stateType: StateType, folderId: string | null, command?: { id: string, name: string, command: string }) {
+		if (this._view) {
+			this._view.show(true); 
+			this._view.webview.postMessage({ 
+				type: "setContext", 
+				stateType, 
+				folderId, 
+				commandId: command?.id,
+				name: command?.name,
+				command: command?.command
+			});
+		} else {
+			this._pendingContext = { stateType, folderId };
+			vscode.commands.executeCommand(`${FormViewProvider.viewType}.focus`);
+		}
+	}
+
+	private _getHtmlForWebview(webview: vscode.Webview) {
+		return `<!DOCTYPE html>
+			<html lang="en">
+			<head>
+				<meta charset="UTF-8">
+				<meta name="viewport" content="width=device-width, initial-scale=1.0">
+				<style>
+					body { padding: 4px 8px; color: var(--vscode-foreground); font-family: var(--vscode-font-family); background: transparent; overflow: hidden; }
+					.container { display: flex; flex-direction: column; gap: 4px; }
+					.input-row { position: relative; display: flex; align-items: center; }
+					input { 
+						width: 100%; 
+						background: var(--vscode-input-background); 
+						color: var(--vscode-input-foreground); 
+						border: 1px solid var(--vscode-input-border); 
+						padding: 4px 28px 4px 6px; 
+						outline: none;
+						box-sizing: border-box;
+						font-size: 11px;
+						height: 24px;
+					}
+					input:focus { border-color: var(--vscode-focusBorder); }
+					.icon-btn {
+						position: absolute;
+						right: 4px;
+						top: 50%;
+						transform: translateY(-50%);
+						width: 20px;
+						height: 20px;
+						display: flex;
+						align-items: center;
+						justify-content: center;
+						cursor: pointer;
+						opacity: 0.6;
+						border-radius: 3px;
+						font-size: 10px;
+						font-weight: bold;
+					}
+					.icon-btn:hover { background: var(--vscode-inputOption-activeBackground); opacity: 1; }
+					.footer { display: flex; justify-content: space-between; align-items: center; margin-top: 4px; font-size: 9px; opacity: 0.4; }
+					#save-trigger {
+						display: flex;
+						align-items: center;
+						justify-content: center;
+						cursor: pointer;
+						color: var(--vscode-button-background);
+						opacity: 0.8;
+						transition: opacity 0.2s;
+					}
+					#save-trigger:hover { opacity: 1; }
+				</style>
+			</head>
+			<body>
+				<div class="container">
+					<div class="input-row">
+						<input type="text" id="name" placeholder="label (e.g. My Script)">
+						<div class="icon-btn" title="Label Mode">Aa</div>
+					</div>
+					<div class="input-row">
+						<input type="text" id="command" placeholder="command (e.g. npm start)">
+						<div class="icon-btn" title="Format Mode">ab</div>
+					</div>
+					<div class="footer">
+						<span id="scope-info">Target: Global</span>
+						<div id="save-trigger" title="Save Command (Enter)">
+							<svg width="18" height="18" viewBox="0 0 16 16" fill="currentColor"><path d="M13.854 3.646l-7.5 7.5l-3.5-3.5l.708-.708l2.792 2.792l7.146-7.146l.708.708z"/></svg>
+						</div>
+					</div>
+				</div>
+
+				<script>
+					const vscode = acquireVsCodeApi();
+					let currentContext = { stateType: 'Global', folderId: null, commandId: null };
+
+					window.addEventListener('message', event => {
+						const message = event.data;
+						if (message.type === 'setContext') {
+							currentContext = { 
+								stateType: message.stateType, 
+								folderId: message.folderId,
+								commandId: message.commandId || null 
+							};
+							const isEdit = !!message.commandId;
+							document.getElementById('scope-info').innerText = isEdit ? 'Editing in ' + message.stateType : 'Target: ' + message.stateType;
+							document.getElementById('save-trigger').title = isEdit ? 'Update Command (Enter)' : 'Save Command (Enter)';
+							
+							document.getElementById('name').value = message.name || '';
+							document.getElementById('command').value = message.command || '';
+							document.getElementById('name').focus();
+						}
+					});
+
+					const submit = () => {
+						const name = document.getElementById('name').value;
+						const command = document.getElementById('command').value;
+						if (name && command) {
+							vscode.postMessage({
+								type: 'save',
+								value: { name, command, ...currentContext }
+							});
+							// Only clear if not editing, or clear anyway to reset state
+							document.getElementById('name').value = '';
+							document.getElementById('command').value = '';
+							currentContext.commandId = null; // Reset edit state after save
+						}
+					};
+
+					document.getElementById('save-trigger').addEventListener('click', submit);
+					document.body.addEventListener('keydown', (e) => {
+						if (e.key === 'Enter') { submit(); }
+					});
+				</script>
+			</body>
+			</html>`;
+	}
+}
