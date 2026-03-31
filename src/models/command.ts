@@ -90,11 +90,37 @@ export default class Command {
 		context: ExtensionContext,
 		resolveCommandType: ResolveCommandType,
 	): Promise<string> {
+		let resolvedCommand = this.command;
+
+		// 1. Handle Dynamic Interactive Parameters: ${Prompt Label}
+		const dynamicPromptRegex = /\${([^}]+)}/g;
+		const dynamicMatches = Array.from(resolvedCommand.matchAll(dynamicPromptRegex));
+		const dynamicInputs = new Map<string, string>();
+
+		for (const match of dynamicMatches) {
+			const fullMatch = match[0];
+			const promptLabel = match[1];
+
+			if (!dynamicInputs.has(fullMatch)) {
+				const input = await takeSingleInput({
+					promptText: `${resolveCommandType} | ${this.name} | ${promptLabel}`,
+					placeholder: `Enter value for: ${promptLabel}`,
+				});
+				dynamicInputs.set(fullMatch, input);
+			}
+		}
+
+		// Replace all dynamic occurrences
+		resolvedCommand = resolvedCommand.replace(dynamicPromptRegex, (match) => {
+			return dynamicInputs.get(match) || match;
+		});
+
+		// 2. Original Placeholder Type Logic ({{}}, {}, etc.)
 		const placeholderType = this.getPlaceholderType();
 		const regex = placeholderType.regex;
-		const matches = placeholderType.extractPlaceholders(this.command);
+		const matches = placeholderType.extractPlaceholders(resolvedCommand);
 		if (!matches) {
-			return this.command;
+			return resolvedCommand;
 		}
 
 		const inputs: Record<string, string> = {};
@@ -108,7 +134,7 @@ export default class Command {
 				inputs[match] = input;
 			}
 		}
-		const resolvedCommand = this.command.replace(regex, (match) => {
+		resolvedCommand = resolvedCommand.replace(regex, (match) => {
 			if (match in inputs) {
 				return inputs[match];
 			}
