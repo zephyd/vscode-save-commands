@@ -42,6 +42,11 @@ class TreeItem extends vscode.TreeItem {
 			this.iconPath = new vscode.ThemeIcon("folder");
 		} else if (this.contextValue === ContextValue.command) {
 			this.iconPath = new vscode.ThemeIcon("terminal");
+			this.command = {
+				command: "save-commands.editCommand",
+				title: "Edit Command",
+				arguments: [this]
+			};
 		}
 	}
 }
