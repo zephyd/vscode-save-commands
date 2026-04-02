@@ -2,9 +2,9 @@
   <defs>
     <linearGradient id="grad-dark" x1="40" y1="40" x2="216" y2="216" gradientUnits="userSpaceOnUse">
       <stop stop-color="#c5babaff"/>
-      <stop offset="0.32" stop-color="#bdab92ff"/>
+      <!-- <stop offset="0.32" stop-color="#bdab92ff"/>
       <stop offset="0.67" stop-color="#adbdd1ff"/>
-      <stop offset="1" stop-color="#afabc4ff"/>
+      <stop offset="1" stop-color="#afabc4ff"/> -->
     </linearGradient>
     <filter id="glow-dark" x="-50%" y="-50%" width="200%" height="200%">
       <feGaussianBlur in="SourceGraphic" stdDeviation="12" result="aura" />

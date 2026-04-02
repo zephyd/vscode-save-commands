@@ -1,49 +1,51 @@
-# Save Commands
+# Save Commands Enhanced
 
-VSCode Extension to save and copy terminal commands.
+A powerful and elegant VS Code extension to save, organize, and execute terminal commands with a modern, interactive interface.
 
 # Demo
 
 ![demo](./media/demo.gif)
 
-# Placeholders
+## 🚀 Key Features
 
-You can add placeholders in your commands. For eg, you can add commands in this manner
-`This is {placeholder1} and {placeholder2} with {placeholder1} again`
-It will ask input for `placeholder1` and `placeholder2`
+- **Interactive Sidebar**: Manage your commands in a beautiful, Gemini-styled sidebar form. No more popups.
+- **Multi-line Commands**: Support for complex shell scripts and multi-line sequences with a spacious code editor.
+- **Dynamic Parameter Engine**: Inject user input into your commands on-the-fly using the `{{placeholder}}` syntax.
+- **Double-Click Workflow**: Clean separation between organization (single-click drag) and editing (double-click to open form).
+- **Advanced Drag & Drop**: Effortlessly reorder items or move them into folders. Empty folders are fully supported as drop targets.
+- **Unified Scope Management**: Seamlessly manage both Global (machine-wide) and Workspace (project-specific) command sets.
 
-You can set `save-commands.placeholderType` to change the capturing group in settings.
+## 🛠️ Usage
 
+### Adding & Editing Commands
+1. Click the **+** icon in the sidebar to add a new command.
+2. **Double-click** any existing command to edit it instantly.
+3. Use the `{ }` helper button in the form footer to wrap selected text into a dynamic parameter.
+4. Press **Ctrl + Enter** (or **Cmd + Enter**) to save.
 
-# Features
+### Terminal Placeholders
+You can add placeholders like `{{package_name}}`. When executed, the extension will prompt you for the specific value.
+- Use the sidebar form's helper button for quick wrapping.
+- Customize the placeholder syntax (e.g., `{{name}}`, `{name}`, `<name>`) in settings.
 
-### Run Folder
-You can execute all commands within a folder as a single concatenated command. 
-- **Configuration**: When editing a folder, you can set the "Join With" string (e.g., ` && `, ` ; `, ` | `) which determines how the individual commands are combined.
-- **Execution**: Click the play icon on a folder.
+### Run & Organizational Features
+- **Run Folder**: Execute all nested commands in a folder as one sequence. Configure the "Join With" operator (e.g. ` && `, ` ; `) via the folder edit form.
+- **Sidebar Icons**: Right-click items for extra actions like Copy to Clipboard or Deletion.
 
-### Drag and Drop
-Organize your command library with ease:
-- **Reorder**: Drag commands or folders to change their sort order.
-- **Move**: Drag items into folders to nest them.
-- *Note*: Currently, moving items between "Global" and "Workspace" scopes is disabled to prevent accidental state corruption.
+## ⚙️ Configuration (JSON)
 
-# Import/Export
+Save Commands Enhanced follows a **JSON-first** philosophy. All your commands are stored in simple, readable JSON files that you can manage directly.
 
-You can import and export your commands. 
-**Export**: Click on the 3 dots, Select Export, Save it as `.json` file
-**Import**: Click on the 3 dots, Select Import, Select the `.json` file
+- **Open Config**: Right-click on the "Global Commands" or "Workspace Commands" root nodes in the sidebar and select **Open Config (JSON)**.
+- **Batch Editing**: Need to reorganize 50 commands? Just open the JSON and use VS Code's powerful multi-cursor editing.
+- **Real-time Sync**: Any changes saved to the JSON files are instantly reflected in the sidebar view.
+- **Backup**: Simply copy your `commands.json` files to any backup location or version control.
 
-Note: If you only want to replace only one of workspace commands or global commands, you can edit the json to remove the `global` or `workspace` property and then use it 
-
-# Development
-
-If you are contributing to this project, you can run the unit test suite using:
+## 🛠️ Development & Testing
+Contribution is welcome! You can run the unit test suite locally:
 ```bash
 npm run unit-test
 ```
-The tests use a custom VS Code mock to run in a standalone environment.
+*Built with modern TypeScript and a custom VS Code mock environment.*
 
 ---
-
-**Enjoy!**

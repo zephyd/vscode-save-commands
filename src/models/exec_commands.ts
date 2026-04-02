@@ -11,8 +11,6 @@ export enum ExecCommands {
 	addFolder = "save-commands.addFolder",
 	deleteFolder = "save-commands.deleteFolder",
 	editFolder = "save-commands.editFolder",
-	export = "save-commands.export",
-	import = "save-commands.import",
 	runFolder = "save-commands.runFolder",
 	runFolderInActiveTerminal = "save-commands.runFolderInActiveTerminal",
 	openConfigFile = "save-commands.openConfigFile",

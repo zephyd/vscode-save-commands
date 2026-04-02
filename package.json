@@ -141,24 +141,6 @@
         }
       },
       {
-        "command": "save-commands.export",
-        "title": "Export",
-        "category": "Save Commands",
-        "icon": {
-          "light": "resources/light/export.svg",
-          "dark": "resources/dark/export.svg"
-        }
-      },
-      {
-        "command": "save-commands.import",
-        "title": "Import",
-        "category": "Save Commands",
-        "icon": {
-          "light": "resources/light/import.svg",
-          "dark": "resources/dark/import.svg"
-        }
-      },
-      {
         "command": "save-commands.runFolder",
         "title": "Try Running Folder Commands",
         "category": "Save Commands",
@@ -268,28 +250,12 @@
         {
           "command": "save-commands.editFolder",
           "when": "false"
-        },
-        {
-          "command": "save-commands.import"
-        },
-        {
-          "command": "save-commands.export"
         }
       ],
       "view/title": [
         {
           "command": "save-commands.reset",
           "when": "view == save-commands-view"
-        },
-        {
-          "command": "save-commands.export",
-          "when": "view == save-commands-view",
-          "group": "Backup"
-        },
-        {
-          "command": "save-commands.import",
-          "when": "view == save-commands-view",
-          "group": "Backup"
         },
         {
           "command": "save-commands.refreshView",
