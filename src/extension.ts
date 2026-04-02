@@ -117,6 +117,21 @@ export function activate(context: vscode.ExtensionContext) {
 		}
 	});
 
+	// Double-click detection state
+	let lastClickTime = 0;
+	let lastClickedId = "";
+
+	// Register the double-click-specific edit command
+	vscode.commands.registerCommand("save-commands.editCommandDouble", async (item: any) => {
+		const now = Date.now();
+		if (now - lastClickTime < 500 && lastClickedId === item.id) {
+			// Trigger the real edit command only on double click
+			await vscode.commands.executeCommand(ExecCommands.editCommand, item);
+		}
+		lastClickTime = now;
+		lastClickedId = item.id || "";
+	});
+
 	const subscriptions = Object.keys(callbacks).map((key) => {
 		return vscode.commands.registerCommand(key, callbacks[key as ExecCommands]);
 	});

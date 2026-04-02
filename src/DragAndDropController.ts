@@ -17,10 +17,16 @@ export default class DragAndDropController implements vscode.TreeDragAndDropCont
 		dataTransfer: vscode.DataTransfer,
 		token: vscode.CancellationToken,
 	): Promise<void> {
-		if (source.length > 0) {
+		if (source.length > 0 && source[0].id) {
+			// Move to string-based transfer for robustness
+			const transferData = JSON.stringify({
+				id: source[0].id,
+				contextValue: source[0].contextValue,
+				stateType: source[0].stateType
+			});
 			dataTransfer.set(
 				"application/vnd.code.tree.save-commands-view",
-				new vscode.DataTransferItem(source[0]),
+				new vscode.DataTransferItem(transferData),
 			);
 		}
 	}
@@ -35,14 +41,33 @@ export default class DragAndDropController implements vscode.TreeDragAndDropCont
 			return;
 		}
 
-		const sourceItem: TreeItem = transferItem.value;
-		if (!sourceItem || !sourceItem.id) {
+		let sourceId: string;
+		let sourceContext: string;
+		let sourceStateType: StateType;
+
+		try {
+			const payload = JSON.parse(transferItem.value);
+			sourceId = payload.id;
+			sourceContext = payload.contextValue;
+			sourceStateType = payload.stateType;
+		} catch (e) {
+			// Fallback for older versions or unexpected formats
+			if (typeof transferItem.value === 'object') {
+				sourceId = transferItem.value.id;
+				sourceContext = transferItem.value.contextValue;
+				sourceStateType = transferItem.value.stateType;
+			} else {
+				return;
+			}
+		}
+
+		if (!sourceId) {
 			return;
 		}
 
-		// Prevent moving between Global and Workspace for now to keep it simple and safe
-		const targetStateType = target?.stateType ?? sourceItem.stateType;
-		if (sourceItem.stateType !== targetStateType) {
+		// Block transitions between Global and Workspace
+		const targetStateType = target?.stateType ?? sourceStateType;
+		if (sourceStateType !== targetStateType) {
 			vscode.window.showWarningMessage("Moving items between Global and Workspace is not supported yet.");
 			return;
 		}
@@ -58,15 +83,15 @@ export default class DragAndDropController implements vscode.TreeDragAndDropCont
 		}
 
 		// Prevent moving a folder into itself
-		if (sourceItem.contextValue === ContextValue.folder && sourceItem.id === newParentFolderId) {
+		if (sourceContext === ContextValue.folder && sourceId === newParentFolderId) {
 			return;
 		}
 
 		try {
-			if (sourceItem.contextValue === ContextValue.command) {
-				await this.moveCommand(sourceItem, newParentFolderId, target);
-			} else if (sourceItem.contextValue === ContextValue.folder) {
-				await this.moveFolder(sourceItem, newParentFolderId, target);
+			if (sourceContext === ContextValue.command) {
+				await this.moveCommand(sourceId, sourceStateType, newParentFolderId, target);
+			} else if (sourceContext === ContextValue.folder) {
+				await this.moveFolder(sourceId, sourceStateType, newParentFolderId, target);
 			}
 
 			vscode.commands.executeCommand(ExecCommands.refreshView);
@@ -76,21 +101,22 @@ export default class DragAndDropController implements vscode.TreeDragAndDropCont
 	}
 
 	private async moveCommand(
-		sourceItem: TreeItem,
+		sourceId: string,
+		sourceStateType: StateType,
 		newParentFolderId: string | null,
 		target: TreeItem | undefined,
 	) {
-		const { etter } = Command.getEtterFromTreeContext(sourceItem);
+		const etter = sourceStateType === StateType.global ? Command.etters.global : Command.etters.workspace;
 		const commands = etter.getValue(this.context);
-		const sourceIndex = commands.findIndex((c) => c.id === sourceItem.id);
+		const sourceIndex = commands.findIndex((c) => c.id === sourceId);
 
 		if (sourceIndex === -1) return;
 
 		const [command] = commands.splice(sourceIndex, 1);
 		command.parentFolderId = newParentFolderId;
 
-		// If dropped on another command or folder, we can try to reorder
-		if (target?.id && target.contextValue !== ContextValue.root) {
+		// Reordering logic
+		if (target?.id && target.contextValue === ContextValue.command) {
 			const targetIndex = commands.findIndex((c) => c.id === target.id);
 			if (targetIndex !== -1) {
 				commands.splice(targetIndex, 0, command);
@@ -101,7 +127,7 @@ export default class DragAndDropController implements vscode.TreeDragAndDropCont
 			commands.push(command);
 		}
 
-		// Update sortOrder for all commands to match array index
+		// Update all sortOrders to stay consistent
 		for (let i = 0; i < commands.length; i++) {
 			commands[i].sortOrder = i;
 		}
@@ -110,23 +136,21 @@ export default class DragAndDropController implements vscode.TreeDragAndDropCont
 	}
 
 	private async moveFolder(
-		sourceItem: TreeItem,
+		sourceId: string,
+		sourceStateType: StateType,
 		newParentFolderId: string | null,
 		target: TreeItem | undefined,
 	) {
-		const { etter } = CommandFolder.getEtterFromTreeContext(sourceItem);
+		const etter = sourceStateType === StateType.global ? CommandFolder.etters.global : CommandFolder.etters.workspace;
 		const folders = etter.getValue(this.context);
-		const sourceIndex = folders.findIndex((f) => f.id === sourceItem.id);
+		const sourceIndex = folders.findIndex((f) => f.id === sourceId);
 
 		if (sourceIndex === -1) return;
 
 		const [folder] = folders.splice(sourceIndex, 1);
-
-		// Prevent nesting if it would cause a cycle (simple check: don't move into a descendant)
-		// For now, let's just allow top level or direct parent update
 		folder.parentFolderId = newParentFolderId;
 
-		if (target?.id && target.contextValue !== ContextValue.root) {
+		if (target?.id && target.contextValue === ContextValue.folder) {
 			const targetIndex = folders.findIndex((f) => f.id === target.id);
 			if (targetIndex !== -1) {
 				folders.splice(targetIndex, 0, folder);
@@ -137,7 +161,7 @@ export default class DragAndDropController implements vscode.TreeDragAndDropCont
 			folders.push(folder);
 		}
 
-		// Update sortOrder for all folders to match array index
+		// Update all sortOrders
 		for (let i = 0; i < folders.length; i++) {
 			folders[i].sortOrder = i;
 		}

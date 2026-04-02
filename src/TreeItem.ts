@@ -1,7 +1,6 @@
 import * as vscode from "vscode";
 import type { StateType } from "./models/etters";
 import { ContextValue } from "./TreeProvider";
-import path = require("node:path");
 
 class TreeItem extends vscode.TreeItem {
 	children: TreeItem[] | undefined;
@@ -9,15 +8,6 @@ class TreeItem extends vscode.TreeItem {
 	sortOrder?: number;
 
 	stateType: StateType;
-
-	// @ts-ignore
-	get collapsibleState(): vscode.TreeItemCollapsibleState {
-		if (this.children === undefined || this.children.length === 0)
-			return vscode.TreeItemCollapsibleState.None;
-		return vscode.TreeItemCollapsibleState.Expanded;
-	}
-
-	set collapsibleState(val: vscode.TreeItemCollapsibleState) {}
 
 	constructor(fields: {
 		id: string | undefined | null;
@@ -29,7 +19,20 @@ class TreeItem extends vscode.TreeItem {
 		sortOrder?: number;
 		stateType: StateType;
 	}) {
-		super(fields.label);
+		// Roots should always be expanded
+		let collapsibleState = vscode.TreeItemCollapsibleState.None;
+		if (fields.contextValue && (fields.contextValue as string).startsWith('root')) {
+			collapsibleState = vscode.TreeItemCollapsibleState.Expanded;
+		} else if (fields.contextValue === ContextValue.folder) {
+			// Folders should always be collapsible even if empty, so they can be drop targets.
+			// If they have children initially (like roots), we expand them.
+			// Otherwise they start Collapsed but remain folders.
+			collapsibleState = (fields.children && fields.children.length > 0) 
+				? vscode.TreeItemCollapsibleState.Expanded 
+				: vscode.TreeItemCollapsibleState.Collapsed;
+		}
+
+		super(fields.label, collapsibleState);
 		this.children = fields.children;
 		this.tooltip = fields.tooltip;
 		this.id = fields.id ?? undefined;
@@ -42,8 +45,9 @@ class TreeItem extends vscode.TreeItem {
 			this.iconPath = new vscode.ThemeIcon("folder");
 		} else if (this.contextValue === ContextValue.command) {
 			this.iconPath = new vscode.ThemeIcon("terminal");
+			// Using the double-click-safe command registered in extension.ts
 			this.command = {
-				command: "save-commands.editCommand",
+				command: "save-commands.editCommandDouble",
 				title: "Edit Command",
 				arguments: [this]
 			};
