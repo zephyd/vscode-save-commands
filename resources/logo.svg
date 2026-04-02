@@ -1,0 +1,31 @@
+<svg width="256" height="256" viewBox="0 0 256 256" fill="none" xmlns="http://www.w3.org/2000/svg">
+  <defs>
+    <!-- 全彩流光渐变 -->
+    <linearGradient id="command-grad" x1="40" y1="40" x2="216" y2="216" gradientUnits="userSpaceOnUse">
+      <stop stop-color="#FF5D5D"/>
+      <stop offset="0.32" stop-color="#FFB347"/>
+      <stop offset="0.67" stop-color="#4E9AFF"/>
+      <stop offset="1" stop-color="#7B61FF"/>
+    </linearGradient>
+    <!-- 多层柔和溢彩滤镜 -->
+    <filter id="super-glow" x="-60%" y="-50%" width="300%" height="300%">
+      <!-- 底层超柔大光晕 (用于环境光感) -->
+      <feGaussianBlur in="SourceGraphic" stdDeviation="24" result="softGlow" />
+      <!-- 中层聚能光晕 (用于勾勒轮廓) -->
+      <feGaussianBlur in="SourceGraphic" stdDeviation="6" result="hardGlow" />
+      <!-- 多层叠加混合 -->
+      <feMerge>
+        <feMergeNode in="softGlow" />
+        <feMergeNode in="hardGlow" />
+        <feMergeNode in="SourceGraphic" />
+      </feMerge>
+    </filter>
+  </defs>
+  <!-- 高质感磨砂背景 -->
+  <rect x="12" y="12" width="232" height="232" rx="56" fill="#1B1B1F"/>
+  <!-- 核心元素：极智滑顺的 ">" 符号与超远域柔性发光 -->
+  <path d="M78 52Q184 104 184 128Q184 152 78 204" 
+        stroke="url(#command-grad)" stroke-width="42" 
+        stroke-linecap="round" stroke-linejoin="round" 
+        filter="url(#super-glow)"/>
+</svg>

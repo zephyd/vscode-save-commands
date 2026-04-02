@@ -2,8 +2,8 @@
   "name": "save-commands-enhanced",
   "displayName": "Save Commands Enhanced",
   "description": "Enhanced extension to save, organize and execute terminal commands efficiently.",
-  "icon": "media/save-commands.png",
-  "version": "1.2.0",
+  "icon": "resources/logo.png",
+  "version": "1.2.1",
   "engines": {
     "vscode": "^1.74.0"
   },

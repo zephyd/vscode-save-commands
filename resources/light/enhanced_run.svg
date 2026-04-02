@@ -1,5 +1,21 @@
-<svg width="16" height="16" viewBox="0 0 16 16" fill="none" xmlns="http://www.w3.org/2000/svg">
-  <!-- Light Theme: Subtle triangle, strong prompt -->
-  <path d="M4 3L13 8L4 13V3Z" stroke="#333333" stroke-width="1" stroke-linejoin="round" stroke-opacity="0.15"/>
-  <path d="M6.5 5.5L9 8L6.5 10.5" stroke="#111111" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+<svg width="256" height="256" viewBox="0 0 256 256" fill="none" xmlns="http://www.w3.org/2000/svg">
+  <defs>
+    <linearGradient id="grad-dark" x1="40" y1="40" x2="216" y2="216" gradientUnits="userSpaceOnUse">
+      <stop stop-color="#424242"/>
+      <stop offset="0.32" stop-color="#424242"/>
+      <stop offset="0.67" stop-color="#5f6b7aff"/>
+      <stop offset="1" stop-color="#403e49ff"/>
+    </linearGradient>
+    <filter id="glow-dark" x="-50%" y="-50%" width="200%" height="200%">
+      <feGaussianBlur in="SourceGraphic" stdDeviation="12" result="aura" />
+      <feMerge>
+        <feMergeNode in="aura" />
+        <feMergeNode in="SourceGraphic" />
+      </feMerge>
+    </filter>
+  </defs>
+  <path d="M78 52Q184 104 184 128Q184 152 78 204" 
+        stroke="url(#grad-dark)" stroke-width="42" 
+        stroke-linecap="round" stroke-linejoin="round" 
+        filter="url(#glow-dark)"/>
 </svg>
