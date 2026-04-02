@@ -207,9 +207,10 @@ export default class FormViewProvider implements vscode.WebviewViewProvider {
 					document.getElementById('save-trigger').addEventListener('click', submit);
 					
 					document.body.addEventListener('keydown', (e) => {
-						// Single Enter on the Name field submits
+						// Enter on Name field moves focus to Command field
 						if (e.key === 'Enter' && e.target.id === 'name') {
-							submit();
+							e.preventDefault();
+							document.getElementById('command').focus();
 						}
 						// Ctrl+Enter (or Cmd+Enter) anywhere submits
 						if (e.key === 'Enter' && (e.ctrlKey || e.metaKey)) {
