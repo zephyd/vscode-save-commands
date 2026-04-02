@@ -24,7 +24,7 @@ export default function (context: vscode.ExtensionContext) {
                 throw new ReadableError("Folder not found in state");
             }
 
-            const joinWith = folder.joinWith || "&&";
+            const joinWith = folder.joinWith || "\\n";
 
             // Only get commands directly in this folder (no recursion)
             const commandsToRun = allCommands
@@ -45,7 +45,10 @@ export default function (context: vscode.ExtensionContext) {
                 resolvedCommands.push(resolved);
             }
 
-            const finalCommand = resolvedCommands.join(` ${joinWith} `);
+            const actualJoinWith = joinWith.replace(/\\n/g, "\n");
+            const finalCommand = resolvedCommands.join(
+                actualJoinWith.includes("\n") ? actualJoinWith : ` ${actualJoinWith} `
+            );
 
             const terminalId = `${folder.name}-${generateString(5)}`;
             const terminal = vscode.window.createTerminal(terminalId);

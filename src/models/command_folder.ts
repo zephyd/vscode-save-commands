@@ -25,7 +25,7 @@ export class CommandFolder {
 			name: fields.name,
 			parentFolderId: fields.parentFolderId,
 			sortOrder: fields.sortOrder,
-			joinWith: fields.joinWith ?? " && ",
+			joinWith: fields.joinWith ?? "\\n",
 		});
 	}
 

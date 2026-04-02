@@ -179,9 +179,9 @@ export const commandFolderInput = async (defaults?: {
 			initialValue: defaults?.name || undefined,
 		})) as string;
 		const joinWith = (await singleInput({
-			promptText: "Join Commands With (default: &&) when running",
-			placeholder: "Eg: &&, ;, |",
-			initialValue: defaults?.joinWith || "&&",
+			promptText: "Join Commands With (default: \\n) when running",
+			placeholder: "Eg: \\n, &&, ;, |",
+			initialValue: defaults?.joinWith || "\\n",
 		})) as string;
 		return Promise.resolve(
 			CommandFolder.create({

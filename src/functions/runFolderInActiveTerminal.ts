@@ -23,7 +23,7 @@ export default function (context: vscode.ExtensionContext) {
                 throw new ReadableError("Folder not found in state");
             }
 
-            const joinWith = folder.joinWith || "&&";
+            const joinWith = folder.joinWith || "\\n";
 
             const activeTerminal = vscode.window.activeTerminal;
             if (!activeTerminal) {
@@ -49,7 +49,10 @@ export default function (context: vscode.ExtensionContext) {
                 resolvedCommands.push(resolved);
             }
 
-            const finalCommand = resolvedCommands.join(` ${joinWith} `);
+            const actualJoinWith = joinWith.replace(/\\n/g, "\n");
+            const finalCommand = resolvedCommands.join(
+                actualJoinWith.includes("\n") ? actualJoinWith : ` ${actualJoinWith} `
+            );
 
             activeTerminal.show();
             activeTerminal.sendText(finalCommand);

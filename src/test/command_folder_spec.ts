@@ -22,7 +22,7 @@ describe("CommandFolder Model Tests", () => {
 
         it("should use default joinWith if not provided", () => {
             const folder = CommandFolder.create({ name: "Default" });
-            assert.strictEqual(folder.joinWith, " && ");
+            assert.strictEqual(folder.joinWith, "\\n");
         });
     });
 
