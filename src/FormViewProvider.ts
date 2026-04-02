@@ -61,26 +61,33 @@ export default class FormViewProvider implements vscode.WebviewViewProvider {
 				<meta charset="UTF-8">
 				<meta name="viewport" content="width=device-width, initial-scale=1.0">
 				<style>
-					body { padding: 4px 8px; color: var(--vscode-foreground); font-family: var(--vscode-font-family); background: transparent; overflow: hidden; }
-					.container { display: flex; flex-direction: column; gap: 4px; }
+					body { padding: 4px 8px; color: var(--vscode-foreground); font-family: var(--vscode-font-family); background: transparent; overflow-x: hidden; overflow-y: auto; }
+					.container { display: flex; flex-direction: column; gap: 6px; }
 					.input-row { position: relative; display: flex; align-items: center; }
-					input { 
+					input, textarea { 
 						width: 100%; 
 						background: var(--vscode-input-background); 
 						color: var(--vscode-input-foreground); 
 						border: 1px solid var(--vscode-input-border); 
-						padding: 4px 28px 4px 6px; 
+						padding: 4px 6px; 
 						outline: none;
 						box-sizing: border-box;
 						font-size: 11px;
-						height: 24px;
+						font-family: inherit;
 					}
-					input:focus { border-color: var(--vscode-focusBorder); }
+					input { height: 24px; padding-right: 28px; }
+					textarea { 
+						min-height: 48px; 
+						max-height: 120px; 
+						resize: vertical; 
+						padding-right: 28px;
+						line-height: 1.4;
+					}
+					input:focus, textarea:focus { border-color: var(--vscode-focusBorder); }
 					.icon-btn {
 						position: absolute;
 						right: 4px;
-						top: 50%;
-						transform: translateY(-50%);
+						top: 6px;
 						width: 20px;
 						height: 20px;
 						display: flex;
@@ -91,6 +98,7 @@ export default class FormViewProvider implements vscode.WebviewViewProvider {
 						border-radius: 3px;
 						font-size: 10px;
 						font-weight: bold;
+						z-index: 10;
 					}
 					.icon-btn:hover { background: var(--vscode-inputOption-activeBackground); opacity: 1; }
 					.footer { display: flex; justify-content: space-between; align-items: center; margin-top: 4px; font-size: 9px; opacity: 0.4; }
@@ -118,12 +126,12 @@ export default class FormViewProvider implements vscode.WebviewViewProvider {
 						<input type="text" id="name" placeholder="label (e.g. My Script)">
 					</div>
 					<div class="input-row">
-						<input type="text" id="command" placeholder="command (e.g. npm start)">
-						<div class="icon-btn" id="dynamic-helper" title="Convert selected to dynamic parameter" style="right: 4px;">D</div>
+						<textarea id="command" placeholder="command (e.g. npm start\nnode index.js)" spellcheck="false"></textarea>
+						<div class="icon-btn" id="dynamic-helper" title="Convert selected to dynamic parameter">D</div>
 					</div>
 					<div class="footer">
 						<span id="scope-info">Target: Global</span>
-						<div id="save-trigger" title="Save Command (Enter)">
+						<div id="save-trigger" title="Save Command (Ctrl+Enter)">
 							<svg width="18" height="18" viewBox="0 0 16 16" fill="currentColor"><path d="M13.854 3.646l-7.5 7.5l-3.5-3.5l.708-.708l2.792 2.792l7.146-7.146l.708.708z"/></svg>
 						</div>
 					</div>
@@ -143,7 +151,7 @@ export default class FormViewProvider implements vscode.WebviewViewProvider {
 							};
 							const isEdit = !!message.commandId;
 							document.getElementById('scope-info').innerText = isEdit ? 'Editing in ' + message.stateType : 'Target: ' + message.stateType;
-							document.getElementById('save-trigger').title = isEdit ? 'Update Command (Enter)' : 'Save Command (Enter)';
+							document.getElementById('save-trigger').title = isEdit ? 'Update Command (Ctrl+Enter)' : 'Save Command (Ctrl+Enter)';
 							
 							document.getElementById('name').value = message.name || '';
 							document.getElementById('command').value = message.command || '';
@@ -184,8 +192,16 @@ export default class FormViewProvider implements vscode.WebviewViewProvider {
 					});
 
 					document.getElementById('save-trigger').addEventListener('click', submit);
+					
 					document.body.addEventListener('keydown', (e) => {
-						if (e.key === 'Enter') { submit(); }
+						// Single Enter on the Name field submits
+						if (e.key === 'Enter' && e.target.id === 'name') {
+							submit();
+						}
+						// Ctrl+Enter (or Cmd+Enter) anywhere submits
+						if (e.key === 'Enter' && (e.ctrlKey || e.metaKey)) {
+							submit();
+						}
 					});
 				</script>
 			</body>
