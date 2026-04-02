@@ -108,7 +108,7 @@ export default class FormViewProvider implements vscode.WebviewViewProvider {
 						justify-content: center;
 						cursor: pointer;
 						opacity: 0.6;
-						transition: all 0.1s;
+						transition: all 0.15s cubic-bezier(0.4, 0, 0.2, 1);
 						width: 22px;
 						height: 22px;
 						border-radius: 3px;
@@ -123,8 +123,10 @@ export default class FormViewProvider implements vscode.WebviewViewProvider {
 					}
 					#save-trigger:hover, #dynamic-helper:hover { 
 						background: var(--vscode-inputOption-activeBackground); 
-						opacity: 1; 
+						opacity: 1;
+						transform: scale(1.05);
 					}
+					#save-trigger:active { transform: scale(0.95); }
 				</style>
 			</head>
 			<body>
@@ -133,14 +135,16 @@ export default class FormViewProvider implements vscode.WebviewViewProvider {
 						<input type="text" id="name" placeholder="label (e.g. My Script)">
 					</div>
 					<div class="input-row">
-						<textarea id="command" placeholder="command (e.g. npm start\nnode index.js)" spellcheck="false"></textarea>
+						<textarea id="command" placeholder="command (e.g. npx @vscode/vsce package --no-yarn)" spellcheck="false"></textarea>
 					</div>
 					<div class="footer">
 						<span id="scope-info">Target: Global</span>
 						<div style="display: flex; align-items: center;">
 							<div id="dynamic-helper" title="Wrap selection as dynamic parameter ({{input}})">{ }</div>
 							<div id="save-trigger" title="Save Command (Ctrl+Enter)">
-								<svg width="18" height="18" viewBox="0 0 16 16" fill="currentColor"><path d="M13.854 3.646l-7.5 7.5l-3.5-3.5l.708-.708l2.792 2.792l7.146-7.146l.708.708z"/></svg>
+								<svg width="16" height="16" viewBox="0 0 16 16" fill="currentColor">
+									<path d="M13.854 3.646L6 11.5L2.146 7.646L2.854 6.939L6 10.086L13.146 2.939L13.854 3.646Z" />
+								</svg>
 							</div>
 						</div>
 					</div>
