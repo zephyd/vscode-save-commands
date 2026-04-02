@@ -102,19 +102,26 @@ export default class FormViewProvider implements vscode.WebviewViewProvider {
 					}
 					.icon-btn:hover { background: var(--vscode-inputOption-activeBackground); opacity: 1; }
 					.footer { display: flex; justify-content: space-between; align-items: center; margin-top: 4px; font-size: 9px; opacity: 0.4; }
-					#save-trigger {
+					#save-trigger, #dynamic-helper {
 						display: flex;
 						align-items: center;
 						justify-content: center;
 						cursor: pointer;
-						color: var(--vscode-button-background);
-						opacity: 0.8;
-						transition: background 0.1s;
+						opacity: 0.6;
+						transition: all 0.1s;
 						width: 22px;
 						height: 22px;
 						border-radius: 3px;
 					}
-					#save-trigger:hover { 
+					#save-trigger { color: var(--vscode-foreground); opacity: 0.8; }
+					#dynamic-helper { 
+						font-family: monospace; 
+						font-weight: bold; 
+						font-size: 13px;
+						color: var(--vscode-foreground);
+						margin-right: 4px;
+					}
+					#save-trigger:hover, #dynamic-helper:hover { 
 						background: var(--vscode-inputOption-activeBackground); 
 						opacity: 1; 
 					}
@@ -127,12 +134,14 @@ export default class FormViewProvider implements vscode.WebviewViewProvider {
 					</div>
 					<div class="input-row">
 						<textarea id="command" placeholder="command (e.g. npm start\nnode index.js)" spellcheck="false"></textarea>
-						<div class="icon-btn" id="dynamic-helper" title="Convert selected to dynamic parameter">D</div>
 					</div>
 					<div class="footer">
 						<span id="scope-info">Target: Global</span>
-						<div id="save-trigger" title="Save Command (Ctrl+Enter)">
-							<svg width="18" height="18" viewBox="0 0 16 16" fill="currentColor"><path d="M13.854 3.646l-7.5 7.5l-3.5-3.5l.708-.708l2.792 2.792l7.146-7.146l.708.708z"/></svg>
+						<div style="display: flex; align-items: center;">
+							<div id="dynamic-helper" title="Wrap selection as dynamic parameter ({{input}})">{ }</div>
+							<div id="save-trigger" title="Save Command (Ctrl+Enter)">
+								<svg width="18" height="18" viewBox="0 0 16 16" fill="currentColor"><path d="M13.854 3.646l-7.5 7.5l-3.5-3.5l.708-.708l2.792 2.792l7.146-7.146l.708.708z"/></svg>
+							</div>
 						</div>
 					</div>
 				</div>
