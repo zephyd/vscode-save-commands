@@ -12,7 +12,7 @@ export default class DragAndDropController
 	dragMimeTypes = ["application/vnd.code.tree.save-commands-view"];
 	dropMimeTypes = ["application/vnd.code.tree.save-commands-view"];
 
-	constructor(private context: vscode.ExtensionContext) { }
+	constructor(private context: vscode.ExtensionContext) {}
 
 	public async handleDrag(
 		source: readonly TreeItem[],
@@ -24,7 +24,7 @@ export default class DragAndDropController
 			const transferData = JSON.stringify({
 				id: source[0].id,
 				contextValue: source[0].contextValue,
-				stateType: source[0].stateType
+				stateType: source[0].stateType,
 			});
 			dataTransfer.set(
 				"application/vnd.code.tree.save-commands-view",
@@ -56,7 +56,7 @@ export default class DragAndDropController
 			sourceStateType = payload.stateType;
 		} catch (e) {
 			// Fallback for older versions or unexpected formats
-			if (typeof transferItem.value === 'object') {
+			if (typeof transferItem.value === "object") {
 				sourceId = transferItem.value.id;
 				sourceContext = transferItem.value.contextValue;
 				sourceStateType = transferItem.value.stateType;

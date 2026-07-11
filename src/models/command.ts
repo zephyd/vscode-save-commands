@@ -90,18 +90,17 @@ export default class Command {
 		context: ExtensionContext,
 		resolveCommandType: ResolveCommandType,
 	): Promise<string | null> {
-		let resolvedCommand = this.command;
+		const resolvedCommand = this.command;
 
-		// 1. Handle Dynamic Interactive Parameters: {{Prompt:Default}}
-		const dynamicPromptRegex = /{{([^}]+)}}/g;
+		const placeholderType = this.getPlaceholderType();
+		const regex = placeholderType.regex;
+
 		let match;
-
-		// We use a copy of the command to process one by one
 		let currentResolved = resolvedCommand;
 
 		// Reset regex index
-		dynamicPromptRegex.lastIndex = 0;
-		while ((match = dynamicPromptRegex.exec(currentResolved)) !== null) {
+		regex.lastIndex = 0;
+		while ((match = regex.exec(currentResolved)) !== null) {
 			const fullMatch = match[0];
 			const content = match[1];
 			const parts = content.split(":");
@@ -120,49 +119,14 @@ export default class Command {
 
 			const finalInput = input === "" ? defaultValue : input;
 
-			// Replace only the CURRENT match. Since matches are sequential, we can replace the first occurrence of fullMatch
-			// However, to be safe with identical matches, we should replace at the regex position.
 			const before = currentResolved.substring(0, match.index);
 			const after = currentResolved.substring(match.index + fullMatch.length);
 			currentResolved = before + finalInput + after;
 
 			// Adjust regex index because the length changed
-			dynamicPromptRegex.lastIndex = before.length + finalInput.length;
+			regex.lastIndex = before.length + finalInput.length;
 		}
 
-		resolvedCommand = currentResolved;
-
-		// 2. Original Placeholder Type Logic ({{}}, {}, etc.)
-		const placeholderType = this.getPlaceholderType();
-		const regex = placeholderType.regex;
-		const matches = placeholderType.extractPlaceholders(resolvedCommand);
-		if (!matches) {
-			return resolvedCommand;
-		}
-
-		const inputs: Record<string, string> = {};
-
-		for (const placeholder in matches) {
-			const input = await takeSingleInput({
-				promptText: `${resolveCommandType} | ${this.name} | ${placeholder} | `,
-				placeholder: `Enter ${placeholder}`,
-			});
-			if (input === undefined) {
-				return null; // Cancelled
-			}
-			// If user hits Enter with empty string, use the label as default
-			const finalInput = input === "" ? placeholder : input;
-			for (const match of matches[placeholder]) {
-				inputs[match] = finalInput;
-			}
-		}
-		resolvedCommand = resolvedCommand.replace(regex, (match) => {
-			if (match in inputs) {
-				return inputs[match];
-			}
-			return match;
-		});
-
-		return resolvedCommand;
+		return currentResolved;
 	}
 }

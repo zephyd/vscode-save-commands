@@ -27,7 +27,12 @@ import {
 } from "./functions";
 import Command from "./models/command";
 import { StateType } from "./models/etters";
+import {
+	FALLBACK_PLACEHOLDER_TYPE,
+	PlaceholderType,
+} from "./models/placeholder_types";
 import SshConnection from "./models/ssh_connection";
+import { getActivePlaceholderType } from "./utils";
 
 export function activate(context: vscode.ExtensionContext) {
 	const treeView = new TreeDataProvider(context);
@@ -102,9 +107,17 @@ export function activate(context: vscode.ExtensionContext) {
 			stateType: StateType;
 			folderId: string | null;
 			commandId?: string;
+			placeholderTypeId?: string;
 		}) => {
 			try {
-				const { name, command, stateType, folderId, commandId } = data;
+				const {
+					name,
+					command,
+					stateType,
+					folderId,
+					commandId,
+					placeholderTypeId,
+				} = data;
 				const etter =
 					stateType === StateType.global
 						? Command.etters.global
@@ -117,15 +130,19 @@ export function activate(context: vscode.ExtensionContext) {
 					if (idx > -1) {
 						currentCommands[idx].name = name.trim();
 						currentCommands[idx].command = command.trim();
+						if (placeholderTypeId) {
+							currentCommands[idx].placeholderTypeId = placeholderTypeId;
+						}
 						// Keep other properties like parentId unless we want to change them
 						vscode.window.showInformationMessage(`Updated Command: ${name}`);
 					}
 				} else {
 					// CREATE MODE
+					const placeholderTypeIdToUse =
+						placeholderTypeId || getActivePlaceholderType().id;
 					const placeholderType =
-						currentCommands.length > 0
-							? currentCommands[0].getPlaceholderType()
-							: Command.fromJson({}).getPlaceholderType();
+						PlaceholderType.getPlaceholderTypeFromId(placeholderTypeIdToUse) ??
+						FALLBACK_PLACEHOLDER_TYPE;
 
 					const newCmd = Command.create({
 						name: name.trim(),

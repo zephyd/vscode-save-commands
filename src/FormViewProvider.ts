@@ -12,6 +12,7 @@ export default class FormViewProvider implements vscode.WebviewViewProvider {
 			id?: string;
 			name?: string;
 			command?: string;
+			placeholderTypeId?: string;
 			host?: string;
 			port?: number;
 			username?: string;
@@ -73,6 +74,7 @@ export default class FormViewProvider implements vscode.WebviewViewProvider {
 			id?: string;
 			name?: string;
 			command?: string;
+			placeholderTypeId?: string;
 			host?: string;
 			port?: number;
 			username?: string;
@@ -89,6 +91,7 @@ export default class FormViewProvider implements vscode.WebviewViewProvider {
 				commandId: initialData?.id,
 				name: initialData?.name,
 				command: initialData?.command,
+				placeholderTypeId: initialData?.placeholderTypeId,
 				host: initialData?.host,
 				port: initialData?.port,
 				username: initialData?.username,
@@ -110,11 +113,30 @@ export default class FormViewProvider implements vscode.WebviewViewProvider {
 					body { padding: 4px 8px; color: var(--vscode-foreground); font-family: var(--vscode-font-family); background: transparent; overflow-x: hidden; overflow-y: auto; }
 					.container { display: flex; flex-direction: column; gap: 6px; }
 					
-					/* Default / Command Mode (No labels, full-width inputs) */
+					/* Default / Command Mode (No labels by default, except name and type) */
 					.input-row { position: relative; margin-bottom: 2px; }
 					.input-row label { display: none; }
 					
-					/* SSH Mode (Show aligned labels) */
+					.container.mode-command #name-row,
+					.container.mode-command #placeholder-type-row {
+						display: flex;
+						align-items: center;
+						gap: 8px;
+					}
+					
+					.container.mode-command #name-row label,
+					.container.mode-command #placeholder-type-row label {
+						display: inline-block;
+						font-size: 11px; 
+						font-weight: 500; 
+						width: 60px; 
+						min-width: 60px;
+						color: var(--vscode-foreground); 
+						opacity: 0.8;
+						user-select: none;
+					}
+					
+					/* SSH Mode (Show aligned labels for all fields) */
 					.container.mode-ssh .input-row { display: flex; align-items: center; gap: 8px; }
 					.container.mode-ssh .input-row label { 
 						display: inline-block;
@@ -127,7 +149,7 @@ export default class FormViewProvider implements vscode.WebviewViewProvider {
 						user-select: none;
 					}
 					
-					input, textarea { 
+					input, textarea, select { 
 						width: 100%; 
 						background: var(--vscode-input-background); 
 						color: var(--vscode-input-foreground); 
@@ -138,14 +160,14 @@ export default class FormViewProvider implements vscode.WebviewViewProvider {
 						font-size: 11px;
 						font-family: inherit;
 					}
-					input { height: 24px; }
+					input, select { height: 24px; }
 					textarea { 
 						min-height: 48px; 
 						max-height: 120px; 
 						resize: vertical; 
 						line-height: 1.4;
 					}
-					input:focus, textarea:focus { border-color: var(--vscode-focusBorder); }
+					input:focus, textarea:focus, select:focus { border-color: var(--vscode-focusBorder); }
 					.icon-btn {
 						position: absolute;
 						right: 4px;
@@ -182,6 +204,10 @@ export default class FormViewProvider implements vscode.WebviewViewProvider {
 						font-size: 13px;
 						color: var(--vscode-foreground);
 						margin-right: 4px;
+						width: auto;
+						min-width: 22px;
+						padding: 0 4px;
+						white-space: nowrap;
 					}
 					#save-trigger:hover, #dynamic-helper:hover { 
 						background: var(--vscode-inputOption-activeBackground); 
@@ -193,26 +219,34 @@ export default class FormViewProvider implements vscode.WebviewViewProvider {
 			</head>
 			<body>
 				<div class="container mode-command">
-					<div class="input-row">
-						<label id="name-label" for="name">Label:</label>
-						<input type="text" id="name" placeholder="label (e.g. My Script)">
+					<div class="input-row" id="name-row">
+						<label for="name">Name:</label>
+						<input type="text" id="name" placeholder="My Script">
+					</div>
+					<div class="input-row" id="placeholder-type-row">
+						<label for="placeholder-type">Type:</label>
+						<select id="placeholder-type">
+							<option value="singleCurlyBraces">singleCurlyBraces ({name})</option>
+							<option value="doubleCurlyBraces">doubleCurlyBraces ({{name}})</option>
+							<option value="singleAngleBraces">singleAngleBraces (&lt;name&gt;)</option>
+							<option value="doubleAngleBraces">doubleAngleBraces (&lt;&lt;name&gt;&gt;)</option>
+						</select>
 					</div>
 					<div class="input-row" id="command-row">
-						<label for="command">Command:</label>
 						<textarea id="command" placeholder="command (e.g. npx @vscode/vsce package --no-yarn)" spellcheck="false"></textarea>
 					</div>
 					<!-- SSH Fields -->
 					<div class="input-row ssh-field" id="host-row" style="display: none;">
 						<label for="host">Host:</label>
-						<input type="text" id="host" placeholder="Host (e.g. 192.168.1.10)">
+						<input type="text" id="host" placeholder="192.168.1.10">
 					</div>
 					<div class="input-row ssh-field" id="port-row" style="display: none;">
 						<label for="port">Port:</label>
-						<input type="text" id="port" placeholder="Port (e.g. 22)">
+						<input type="text" id="port" placeholder="22">
 					</div>
 					<div class="input-row ssh-field" id="username-row" style="display: none;">
 						<label for="username">Username:</label>
-						<input type="text" id="username" placeholder="Username (e.g. root)">
+						<input type="text" id="username" placeholder="root">
 					</div>
 					<div class="input-row ssh-field" id="password-row" style="display: none;">
 						<label for="password">Password:</label>
@@ -221,7 +255,7 @@ export default class FormViewProvider implements vscode.WebviewViewProvider {
 					<div class="footer">
 						<span id="scope-info">Target: Global</span>
 						<div style="display: flex; align-items: center;">
-							<div id="dynamic-helper" title="Wrap selection as dynamic parameter ({{input}})">{ }</div>
+							<div id="dynamic-helper" title="Wrap selection as parameter">{ }</div>
 							<div id="save-trigger" title="Save Command (Ctrl+Enter)">
 								<svg width="16" height="16" viewBox="0 0 16 16" fill="currentColor">
 									<path d="M13.854 3.646L6 11.5L2.146 7.646L2.854 6.939L6 10.086L13.146 2.939L13.854 3.646Z" />
@@ -234,6 +268,26 @@ export default class FormViewProvider implements vscode.WebviewViewProvider {
 				<script>
 					const vscode = acquireVsCodeApi();
 					let currentContext = { stateType: 'Global', folderId: null, commandId: null, mode: 'command' };
+
+					const updateHelperButton = () => {
+						const type = document.getElementById('placeholder-type').value;
+						const helper = document.getElementById('dynamic-helper');
+						if (type === 'singleCurlyBraces') {
+							helper.innerText = '{ }';
+							helper.title = 'Wrap selection as parameter ({input})';
+						} else if (type === 'doubleCurlyBraces') {
+							helper.innerText = '{{ }}';
+							helper.title = 'Wrap selection as parameter ({{input}})';
+						} else if (type === 'singleAngleBraces') {
+							helper.innerText = '< >';
+							helper.title = 'Wrap selection as parameter (<input>)';
+						} else if (type === 'doubleAngleBraces') {
+							helper.innerText = '<< >>';
+							helper.title = 'Wrap selection as parameter (<<input>>)';
+						}
+					};
+
+					document.getElementById('placeholder-type').addEventListener('change', updateHelperButton);
 
 					window.addEventListener('message', event => {
 						const message = event.data;
@@ -252,6 +306,7 @@ export default class FormViewProvider implements vscode.WebviewViewProvider {
 								container.classList.add('mode-ssh');
 								
 								document.getElementById('command-row').style.display = 'none';
+								document.getElementById('placeholder-type-row').style.display = 'none';
 								document.getElementById('dynamic-helper').style.display = 'none';
 								document.querySelectorAll('.ssh-field').forEach(el => el.style.display = 'flex');
 								
@@ -269,6 +324,7 @@ export default class FormViewProvider implements vscode.WebviewViewProvider {
 								container.classList.add('mode-command');
 								
 								document.getElementById('command-row').style.display = 'block';
+								document.getElementById('placeholder-type-row').style.display = 'flex';
 								document.getElementById('dynamic-helper').style.display = 'flex';
 								document.querySelectorAll('.ssh-field').forEach(el => el.style.display = 'none');
 								
@@ -277,7 +333,10 @@ export default class FormViewProvider implements vscode.WebviewViewProvider {
 								
 								document.getElementById('name').value = message.name || '';
 								document.getElementById('command').value = message.command || '';
-								document.getElementById('name').placeholder = 'label (e.g. My Script)';
+								document.getElementById('placeholder-type').value = message.placeholderTypeId || 'singleCurlyBraces';
+								document.getElementById('name').placeholder = 'My Script';
+								
+								updateHelperButton();
 							}
 							document.getElementById('name').focus();
 						}
@@ -299,10 +358,11 @@ export default class FormViewProvider implements vscode.WebviewViewProvider {
 							}
 						} else {
 							const command = document.getElementById('command').value;
+							const placeholderTypeId = document.getElementById('placeholder-type').value;
 							if (name && command) {
 								vscode.postMessage({
 									type: 'save',
-									value: { name, command, ...currentContext }
+									value: { name, command, placeholderTypeId, ...currentContext }
 								});
 								clearForm();
 							}
@@ -327,7 +387,18 @@ export default class FormViewProvider implements vscode.WebviewViewProvider {
 						const text = cmdInput.value;
 						const selected = text.substring(start, end).trim();
 						
-						const replacement = '{{input:' + selected + '}}';
+						const type = document.getElementById('placeholder-type').value;
+						let replacement = '';
+						if (type === 'singleCurlyBraces') {
+							replacement = '{input:' + selected + '}';
+						} else if (type === 'doubleCurlyBraces') {
+							replacement = '{{input:' + selected + '}}';
+						} else if (type === 'singleAngleBraces') {
+							replacement = '<input:' + selected + '>';
+						} else if (type === 'doubleAngleBraces') {
+							replacement = '<<input:' + selected + '>>';
+						}
+						
 						const newText = text.substring(0, start) + replacement + text.substring(end);
 						
 						cmdInput.value = newText;
@@ -341,11 +412,7 @@ export default class FormViewProvider implements vscode.WebviewViewProvider {
 					document.body.addEventListener('keydown', (e) => {
 						if (e.key === 'Enter' && e.target.id === 'name') {
 							e.preventDefault();
-							if (currentContext.mode === 'ssh') {
-								document.getElementById('host').focus();
-							} else {
-								document.getElementById('command').focus();
-							}
+							document.getElementById('command').focus();
 						}
 						if (e.key === 'Enter' && (e.ctrlKey || e.metaKey)) {
 							submit();

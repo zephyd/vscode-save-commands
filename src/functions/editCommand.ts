@@ -27,6 +27,7 @@ export default function (
 					id: cmd.id,
 					name: cmd.name,
 					command: cmd.command,
+					placeholderTypeId: cmd.placeholderTypeId,
 				},
 			);
 		}, "Error Editing Command");
