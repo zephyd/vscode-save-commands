@@ -1,10 +1,10 @@
 import * as vscode from "vscode";
-import { confirmationDialog } from "../utils";
-import Command from "../models/command";
-import { ExecCommands } from "../models/exec_commands";
 import type TreeItem from "../TreeItem";
+import Command from "../models/command";
 import { CommandFolder } from "../models/command_folder";
 import ReadableError from "../models/error";
+import { ExecCommands } from "../models/exec_commands";
+import { confirmationDialog } from "../utils";
 
 export default function (context: vscode.ExtensionContext) {
 	return (item: TreeItem) => {

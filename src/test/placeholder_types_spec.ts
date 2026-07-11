@@ -1,8 +1,8 @@
+import * as assert from "node:assert";
 import {
 	ALL_PLACEHOLDERS,
 	type PlaceholderType,
 } from "../models/placeholder_types";
-import * as assert from "node:assert";
 
 describe("PlaceholderType Tests", () => {
 	const generatePlaceholderCommand = (
@@ -33,8 +33,14 @@ describe("PlaceholderType Tests", () => {
 			const matches = placeholderType.extractPlaceholders(command);
 
 			assert.ok(matches, "Matches should not be null");
-			assert.ok(matches[placeholderType.wrapLabel("label1").replace(/^\W+|\W+$/g, '')], "label1 match missing");
-			assert.ok(matches[placeholderType.wrapLabel("label2").replace(/^\W+|\W+$/g, '')], "label2 match missing");
+			assert.ok(
+				matches[placeholderType.wrapLabel("label1").replace(/^\W+|\W+$/g, "")],
+				"label1 match missing",
+			);
+			assert.ok(
+				matches[placeholderType.wrapLabel("label2").replace(/^\W+|\W+$/g, "")],
+				"label2 match missing",
+			);
 
 			const replacedCommand = command.replace(regex, (match) => {
 				if (match in input) {

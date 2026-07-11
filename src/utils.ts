@@ -1,12 +1,12 @@
 import * as vscode from "vscode";
-import ReadableError from "./models/error";
 import Command from "./models/command";
+import { CommandFolder } from "./models/command_folder";
+import ReadableError from "./models/error";
 import {
 	ALL_PLACEHOLDERS,
 	FALLBACK_PLACEHOLDER_TYPE,
 	type PlaceholderType,
 } from "./models/placeholder_types";
-import { CommandFolder } from "./models/command_folder";
 
 export enum Decision {
 	yes = "Yes",

@@ -15,4 +15,11 @@ export enum ExecCommands {
 	runFolderInActiveTerminal = "save-commands.runFolderInActiveTerminal",
 	openConfigFile = "save-commands.openConfigFile",
 	openGlobalConfigFile = "save-commands.openGlobalConfigFile",
+	sshConnect = "save-commands.sshConnect",
+	sshConnectInActiveTerminal = "save-commands.sshConnectInActiveTerminal",
+	addSshConnection = "save-commands.addSshConnection",
+	deleteSshConnection = "save-commands.deleteSshConnection",
+	openSshConfigFile = "save-commands.openSshConfigFile",
+	openGlobalSshConfigFile = "save-commands.openGlobalSshConfigFile",
+	editSshConnection = "save-commands.editSshConnection",
 }

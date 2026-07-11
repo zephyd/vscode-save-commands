@@ -1,8 +1,8 @@
-import type { ExtensionContext, Memento } from "vscode";
-import type { JSONObj } from "./base_types";
 import * as fs from "node:fs";
 import * as path from "node:path";
+import type { ExtensionContext, Memento } from "vscode";
 import * as vscode from "vscode";
+import type { JSONObj } from "./base_types";
 
 export enum StateType {
 	global = "Global",
@@ -25,7 +25,10 @@ export class ExtensionContextListEtter<T extends Serializable> {
 		this.deserializer = deserializer;
 	}
 
-	private getStoragePath(context: ExtensionContext, stateType: StateType): string | null {
+	private getStoragePath(
+		context: ExtensionContext,
+		stateType: StateType,
+	): string | null {
 		if (stateType === StateType.workspace) {
 			const workspaceFolder = vscode.workspace.workspaceFolders?.[0];
 			if (!workspaceFolder) {
@@ -88,7 +91,11 @@ export class ExtensionContextListEtter<T extends Serializable> {
 			return;
 		}
 		try {
-			const content = JSON.stringify(newValue.map((v) => v.toJson()), null, 2);
+			const content = JSON.stringify(
+				newValue.map((v) => v.toJson()),
+				null,
+				2,
+			);
 			fs.writeFileSync(filePath, content, "utf8");
 		} catch (e) {
 			console.error(`Error writing storage file ${filePath}:`, e);

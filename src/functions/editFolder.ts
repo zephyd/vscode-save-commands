@@ -1,9 +1,9 @@
 import * as vscode from "vscode";
-import { commandFolderInput } from "../utils";
 import type TreeItem from "../TreeItem";
-import { ExecCommands } from "../models/exec_commands";
-import ReadableError from "../models/error";
 import { CommandFolder } from "../models/command_folder";
+import ReadableError from "../models/error";
+import { ExecCommands } from "../models/exec_commands";
+import { commandFolderInput } from "../utils";
 
 export default function (context: vscode.ExtensionContext) {
 	return async (item: TreeItem) => {

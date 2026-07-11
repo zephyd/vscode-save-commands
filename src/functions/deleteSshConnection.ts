@@ -1,8 +1,8 @@
 import * as vscode from "vscode";
 import type TreeItem from "../TreeItem";
-import Command from "../models/command";
 import ReadableError from "../models/error";
 import { ExecCommands } from "../models/exec_commands";
+import SshConnection from "../models/ssh_connection";
 import { confirmationDialog } from "../utils";
 
 export default function (context: vscode.ExtensionContext) {
@@ -10,17 +10,19 @@ export default function (context: vscode.ExtensionContext) {
 		confirmationDialog({
 			onConfirm: () => {
 				ReadableError.runGuarded(async () => {
-					const { etter } = Command.getEtterFromTreeContext(item);
-					const commands = etter.getValue(context);
-					const i = commands.findIndex((d: Command) => d.id === item.id);
+					const { etter } = SshConnection.getEtterFromTreeContext(item);
+					const connections = etter.getValue(context);
+					const i = connections.findIndex(
+						(d: SshConnection) => d.id === item.id,
+					);
 					if (i > -1) {
-						commands.splice(i, 1);
+						connections.splice(i, 1);
 					}
-					etter.setValue(context, commands);
+					await etter.setValue(context, connections);
 					vscode.commands.executeCommand(ExecCommands.refreshView);
-				}, "Failed Deleting Command");
+				}, "Failed Deleting SSH Connection");
 			},
-			message: "Are you sure you want to delete the command?",
+			message: "Are you sure you want to delete the SSH connection?",
 		});
 	};
 }

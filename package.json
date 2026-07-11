@@ -175,6 +175,69 @@
           "light": "resources/light/config.svg",
           "dark": "resources/dark/config.svg"
         }
+      },
+      {
+        "command": "save-commands.sshConnect",
+        "title": "SSH Connect",
+        "category": "Save Commands Enhanced",
+        "icon": {
+          "light": "resources/light/run.svg",
+          "dark": "resources/dark/run.svg"
+        }
+      },
+      {
+        "command": "save-commands.sshConnectInActiveTerminal",
+        "title": "SSH Connect In Active Terminal",
+        "category": "Save Commands Enhanced",
+        "icon": {
+          "light": "resources/light/run_active.svg",
+          "dark": "resources/dark/run_active.svg"
+        }
+      },
+      {
+        "command": "save-commands.addSshConnection",
+        "title": "Add SSH Connection",
+        "category": "Save Commands Enhanced",
+        "icon": {
+          "light": "resources/light/add.svg",
+          "dark": "resources/dark/add.svg"
+        }
+      },
+      {
+        "command": "save-commands.deleteSshConnection",
+        "title": "Delete SSH Connection",
+        "category": "Save Commands Enhanced",
+        "icon": {
+          "light": "resources/light/trash.svg",
+          "dark": "resources/dark/trash.svg"
+        }
+      },
+      {
+        "command": "save-commands.openSshConfigFile",
+        "title": "Open Workspace SSH Config (JSON)",
+        "category": "Save Commands Enhanced",
+        "icon": {
+          "light": "resources/light/config.svg",
+          "dark": "resources/dark/config.svg"
+        }
+      },
+      {
+        "command": "save-commands.openGlobalSshConfigFile",
+        "title": "Open Global SSH Config (JSON)",
+        "category": "Save Commands Enhanced",
+        "icon": {
+          "light": "resources/light/config.svg",
+          "dark": "resources/dark/config.svg"
+        }
+      },
+      {
+        "command": "save-commands.editSshConnection",
+        "title": "Edit SSH Connection",
+        "category": "Save Commands Enhanced",
+        "icon": {
+          "light": "resources/light/edit.svg",
+          "dark": "resources/dark/edit.svg"
+        }
       }
     ],
     "viewsContainers": {
@@ -308,16 +371,16 @@
         {
           "command": "save-commands.addCommand",
           "group": "inline",
-          "when": "view == save-commands-view && viewItem =~ /root/ || viewItem == folder"
+          "when": "view == save-commands-view && viewItem =~ /root-global$|root-workspace$/ || viewItem == folder"
         },
         {
           "command": "save-commands.deleteCommands",
-          "when": "view == save-commands-view && viewItem =~ /root/"
+          "when": "view == save-commands-view && viewItem =~ /root-global$|root-workspace$/"
         },
         {
           "command": "save-commands.addFolder",
           "group": "inline",
-          "when": "view == save-commands-view && viewItem =~ /root/ || viewItem == folder"
+          "when": "view == save-commands-view && viewItem =~ /root-global$|root-workspace$/ || viewItem == folder"
         },
         {
           "command": "save-commands.openGlobalConfigFile",
@@ -328,6 +391,40 @@
           "command": "save-commands.openConfigFile",
           "group": "inline",
           "when": "view == save-commands-view && viewItem == root-workspace"
+        },
+        {
+          "command": "save-commands.sshConnect",
+          "group": "inline",
+          "when": "view == save-commands-view && viewItem == sshConnection"
+        },
+        {
+          "command": "save-commands.sshConnectInActiveTerminal",
+          "group": "inline",
+          "when": "view == save-commands-view && viewItem == sshConnection"
+        },
+        {
+          "command": "save-commands.deleteSshConnection",
+          "when": "view == save-commands-view && viewItem == sshConnection"
+        },
+        {
+          "command": "save-commands.editSshConnection",
+          "group": "inline",
+          "when": "view == save-commands-view && viewItem == sshConnection"
+        },
+        {
+          "command": "save-commands.addSshConnection",
+          "group": "inline",
+          "when": "view == save-commands-view && viewItem =~ /root-.*-ssh/"
+        },
+        {
+          "command": "save-commands.openGlobalSshConfigFile",
+          "group": "inline",
+          "when": "view == save-commands-view && viewItem == root-global-ssh"
+        },
+        {
+          "command": "save-commands.openSshConfigFile",
+          "group": "inline",
+          "when": "view == save-commands-view && viewItem == root-workspace-ssh"
         }
       ]
     }

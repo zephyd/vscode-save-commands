@@ -1,6 +1,6 @@
 import * as vscode from "vscode";
-import type { StateType } from "./models/etters";
 import { ContextValue } from "./TreeProvider";
+import type { StateType } from "./models/etters";
 
 class TreeItem extends vscode.TreeItem {
 	children: TreeItem[] | undefined;
@@ -21,15 +21,19 @@ class TreeItem extends vscode.TreeItem {
 	}) {
 		// Roots should always be expanded
 		let collapsibleState = vscode.TreeItemCollapsibleState.None;
-		if (fields.contextValue && (fields.contextValue as string).startsWith('root')) {
+		if (
+			fields.contextValue &&
+			(fields.contextValue as string).startsWith("root")
+		) {
 			collapsibleState = vscode.TreeItemCollapsibleState.Expanded;
 		} else if (fields.contextValue === ContextValue.folder) {
 			// Folders should always be collapsible even if empty, so they can be drop targets.
 			// If they have children initially (like roots), we expand them.
 			// Otherwise they start Collapsed but remain folders.
-			collapsibleState = (fields.children && fields.children.length > 0) 
-				? vscode.TreeItemCollapsibleState.Expanded 
-				: vscode.TreeItemCollapsibleState.Collapsed;
+			collapsibleState =
+				fields.children && fields.children.length > 0
+					? vscode.TreeItemCollapsibleState.Expanded
+					: vscode.TreeItemCollapsibleState.Collapsed;
 		}
 
 		super(fields.label, collapsibleState);
@@ -49,8 +53,10 @@ class TreeItem extends vscode.TreeItem {
 			this.command = {
 				command: "save-commands.editCommandDouble",
 				title: "Edit Command",
-				arguments: [this]
+				arguments: [this],
 			};
+		} else if (this.contextValue === ContextValue.sshConnection) {
+			this.iconPath = new vscode.ThemeIcon("remote");
 		}
 	}
 }

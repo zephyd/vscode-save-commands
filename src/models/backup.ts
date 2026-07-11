@@ -1,4 +1,4 @@
-import { instanceToPlain, plainToInstance, Type } from "class-transformer";
+import { Type, instanceToPlain, plainToInstance } from "class-transformer";
 import type { JSONObj, PickProperties } from "./base_types";
 import Command from "./command";
 import { CommandFolder } from "./command_folder";

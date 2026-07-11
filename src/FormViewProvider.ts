@@ -1,12 +1,25 @@
 import * as vscode from "vscode";
-import { StateType } from "./models/etters";
+import type { StateType } from "./models/etters";
 
 export default class FormViewProvider implements vscode.WebviewViewProvider {
 	public static readonly viewType = "save-commands-form-view";
 	private _view?: vscode.WebviewView;
-	private _pendingContext?: { stateType: StateType, folderId: string | null };
+	private _pendingContext?: {
+		stateType: StateType;
+		folderId: string | null;
+		mode: "command" | "ssh";
+		initialData?: {
+			id?: string;
+			name?: string;
+			command?: string;
+			host?: string;
+			port?: number;
+			username?: string;
+			password?: string;
+		};
+	};
 
-	constructor(private readonly _context: vscode.ExtensionContext) { }
+	constructor(private readonly _context: vscode.ExtensionContext) {}
 
 	public resolveWebviewView(
 		webviewView: vscode.WebviewView,
@@ -23,33 +36,66 @@ export default class FormViewProvider implements vscode.WebviewViewProvider {
 		webviewView.webview.html = this._getHtmlForWebview(webviewView.webview);
 
 		if (this._pendingContext) {
-			this.prepareForm(this._pendingContext.stateType, this._pendingContext.folderId);
+			this.prepareForm(
+				this._pendingContext.stateType,
+				this._pendingContext.folderId,
+				this._pendingContext.mode,
+				this._pendingContext.initialData,
+			);
 			this._pendingContext = undefined;
 		}
 
 		webviewView.webview.onDidReceiveMessage(async (data) => {
 			switch (data.type) {
 				case "save": {
-					vscode.commands.executeCommand("save-commands.handleFormSubmit", data.value);
+					vscode.commands.executeCommand(
+						"save-commands.handleFormSubmit",
+						data.value,
+					);
+					break;
+				}
+				case "saveSsh": {
+					vscode.commands.executeCommand(
+						"save-commands.handleSshFormSubmit",
+						data.value,
+					);
 					break;
 				}
 			}
 		});
 	}
 
-	public prepareForm(stateType: StateType, folderId: string | null, command?: { id: string, name: string, command: string }) {
+	public prepareForm(
+		stateType: StateType,
+		folderId: string | null,
+		mode: "command" | "ssh",
+		initialData?: {
+			id?: string;
+			name?: string;
+			command?: string;
+			host?: string;
+			port?: number;
+			username?: string;
+			password?: string;
+		},
+	) {
 		if (this._view) {
 			this._view.show(true);
 			this._view.webview.postMessage({
 				type: "setContext",
 				stateType,
 				folderId,
-				commandId: command?.id,
-				name: command?.name,
-				command: command?.command
+				mode,
+				commandId: initialData?.id,
+				name: initialData?.name,
+				command: initialData?.command,
+				host: initialData?.host,
+				port: initialData?.port,
+				username: initialData?.username,
+				password: initialData?.password,
 			});
 		} else {
-			this._pendingContext = { stateType, folderId };
+			this._pendingContext = { stateType, folderId, mode, initialData };
 			vscode.commands.executeCommand(`${FormViewProvider.viewType}.focus`);
 		}
 	}
@@ -63,7 +109,24 @@ export default class FormViewProvider implements vscode.WebviewViewProvider {
 				<style>
 					body { padding: 4px 8px; color: var(--vscode-foreground); font-family: var(--vscode-font-family); background: transparent; overflow-x: hidden; overflow-y: auto; }
 					.container { display: flex; flex-direction: column; gap: 6px; }
-					.input-row { position: relative; display: flex; align-items: center; }
+					
+					/* Default / Command Mode (No labels, full-width inputs) */
+					.input-row { position: relative; margin-bottom: 2px; }
+					.input-row label { display: none; }
+					
+					/* SSH Mode (Show aligned labels) */
+					.container.mode-ssh .input-row { display: flex; align-items: center; gap: 8px; }
+					.container.mode-ssh .input-row label { 
+						display: inline-block;
+						font-size: 11px; 
+						font-weight: 500; 
+						width: 60px; 
+						min-width: 60px;
+						color: var(--vscode-foreground); 
+						opacity: 0.8;
+						user-select: none;
+					}
+					
 					input, textarea { 
 						width: 100%; 
 						background: var(--vscode-input-background); 
@@ -75,12 +138,11 @@ export default class FormViewProvider implements vscode.WebviewViewProvider {
 						font-size: 11px;
 						font-family: inherit;
 					}
-					input { height: 24px; padding-right: 28px; }
+					input { height: 24px; }
 					textarea { 
 						min-height: 48px; 
 						max-height: 120px; 
 						resize: vertical; 
-						padding-right: 28px;
 						line-height: 1.4;
 					}
 					input:focus, textarea:focus { border-color: var(--vscode-focusBorder); }
@@ -130,12 +192,31 @@ export default class FormViewProvider implements vscode.WebviewViewProvider {
 				</style>
 			</head>
 			<body>
-				<div class="container">
+				<div class="container mode-command">
 					<div class="input-row">
+						<label id="name-label" for="name">Label:</label>
 						<input type="text" id="name" placeholder="label (e.g. My Script)">
 					</div>
-					<div class="input-row">
+					<div class="input-row" id="command-row">
+						<label for="command">Command:</label>
 						<textarea id="command" placeholder="command (e.g. npx @vscode/vsce package --no-yarn)" spellcheck="false"></textarea>
+					</div>
+					<!-- SSH Fields -->
+					<div class="input-row ssh-field" id="host-row" style="display: none;">
+						<label for="host">Host:</label>
+						<input type="text" id="host" placeholder="Host (e.g. 192.168.1.10)">
+					</div>
+					<div class="input-row ssh-field" id="port-row" style="display: none;">
+						<label for="port">Port:</label>
+						<input type="text" id="port" placeholder="Port (e.g. 22)">
+					</div>
+					<div class="input-row ssh-field" id="username-row" style="display: none;">
+						<label for="username">Username:</label>
+						<input type="text" id="username" placeholder="Username (e.g. root)">
+					</div>
+					<div class="input-row ssh-field" id="password-row" style="display: none;">
+						<label for="password">Password:</label>
+						<input type="password" id="password" placeholder="Password">
 					</div>
 					<div class="footer">
 						<span id="scope-info">Target: Global</span>
@@ -152,7 +233,7 @@ export default class FormViewProvider implements vscode.WebviewViewProvider {
 
 				<script>
 					const vscode = acquireVsCodeApi();
-					let currentContext = { stateType: 'Global', folderId: null, commandId: null };
+					let currentContext = { stateType: 'Global', folderId: null, commandId: null, mode: 'command' };
 
 					window.addEventListener('message', event => {
 						const message = event.data;
@@ -160,30 +241,82 @@ export default class FormViewProvider implements vscode.WebviewViewProvider {
 							currentContext = { 
 								stateType: message.stateType, 
 								folderId: message.folderId,
-								commandId: message.commandId || null 
+								commandId: message.commandId || null,
+								mode: message.mode || 'command'
 							};
 							const isEdit = !!message.commandId;
-							document.getElementById('scope-info').innerText = isEdit ? 'Editing in ' + message.stateType : 'Target: ' + message.stateType;
-							document.getElementById('save-trigger').title = isEdit ? 'Update Command (Ctrl+Enter)' : 'Save Command (Ctrl+Enter)';
+							const container = document.querySelector('.container');
 							
-							document.getElementById('name').value = message.name || '';
-							document.getElementById('command').value = message.command || '';
+							if (currentContext.mode === 'ssh') {
+								container.classList.remove('mode-command');
+								container.classList.add('mode-ssh');
+								
+								document.getElementById('command-row').style.display = 'none';
+								document.getElementById('dynamic-helper').style.display = 'none';
+								document.querySelectorAll('.ssh-field').forEach(el => el.style.display = 'flex');
+								
+								document.getElementById('scope-info').innerText = isEdit ? 'Editing SSH in ' + message.stateType : 'Target SSH: ' + message.stateType;
+								document.getElementById('save-trigger').title = isEdit ? 'Update SSH Connection (Ctrl+Enter)' : 'Save SSH Connection (Ctrl+Enter)';
+								
+								document.getElementById('name').value = message.name || '';
+								document.getElementById('host').value = message.host || '';
+								document.getElementById('port').value = message.port || '22';
+								document.getElementById('username').value = message.username || '';
+								document.getElementById('password').value = message.password || '';
+								document.getElementById('name').placeholder = 'My Server';
+							} else {
+								container.classList.remove('mode-ssh');
+								container.classList.add('mode-command');
+								
+								document.getElementById('command-row').style.display = 'block';
+								document.getElementById('dynamic-helper').style.display = 'flex';
+								document.querySelectorAll('.ssh-field').forEach(el => el.style.display = 'none');
+								
+								document.getElementById('scope-info').innerText = isEdit ? 'Editing in ' + message.stateType : 'Target: ' + message.stateType;
+								document.getElementById('save-trigger').title = isEdit ? 'Update Command (Ctrl+Enter)' : 'Save Command (Ctrl+Enter)';
+								
+								document.getElementById('name').value = message.name || '';
+								document.getElementById('command').value = message.command || '';
+								document.getElementById('name').placeholder = 'label (e.g. My Script)';
+							}
 							document.getElementById('name').focus();
 						}
 					});
 
 					const submit = () => {
 						const name = document.getElementById('name').value;
-						const command = document.getElementById('command').value;
-						if (name && command) {
-							vscode.postMessage({
-								type: 'save',
-								value: { name, command, ...currentContext }
-							});
-							document.getElementById('name').value = '';
-							document.getElementById('command').value = '';
-							currentContext.commandId = null; 
+						if (currentContext.mode === 'ssh') {
+							const host = document.getElementById('host').value;
+							const port = parseInt(document.getElementById('port').value, 10) || 22;
+							const username = document.getElementById('username').value;
+							const password = document.getElementById('password').value;
+							if (name && host && username) {
+								vscode.postMessage({
+									type: 'saveSsh',
+									value: { name, host, port, username, password, ...currentContext }
+								});
+								clearForm();
+							}
+						} else {
+							const command = document.getElementById('command').value;
+							if (name && command) {
+								vscode.postMessage({
+									type: 'save',
+									value: { name, command, ...currentContext }
+								});
+								clearForm();
+							}
 						}
+					};
+
+					const clearForm = () => {
+						document.getElementById('name').value = '';
+						document.getElementById('command').value = '';
+						document.getElementById('host').value = '';
+						document.getElementById('port').value = '22';
+						document.getElementById('username').value = '';
+						document.getElementById('password').value = '';
+						currentContext.commandId = null; 
 					};
 
 					// Dynamic Helper Logic
@@ -199,7 +332,6 @@ export default class FormViewProvider implements vscode.WebviewViewProvider {
 						
 						cmdInput.value = newText;
 						cmdInput.focus();
-						// Set selection after the inserted parameter
 						const newCursorPos = start + replacement.length;
 						cmdInput.setSelectionRange(newCursorPos, newCursorPos);
 					});
@@ -207,12 +339,14 @@ export default class FormViewProvider implements vscode.WebviewViewProvider {
 					document.getElementById('save-trigger').addEventListener('click', submit);
 					
 					document.body.addEventListener('keydown', (e) => {
-						// Enter on Name field moves focus to Command field
 						if (e.key === 'Enter' && e.target.id === 'name') {
 							e.preventDefault();
-							document.getElementById('command').focus();
+							if (currentContext.mode === 'ssh') {
+								document.getElementById('host').focus();
+							} else {
+								document.getElementById('command').focus();
+							}
 						}
-						// Ctrl+Enter (or Cmd+Enter) anywhere submits
 						if (e.key === 'Enter' && (e.ctrlKey || e.metaKey)) {
 							submit();
 						}

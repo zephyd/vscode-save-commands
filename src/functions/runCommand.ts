@@ -15,7 +15,7 @@ export default function (context: vscode.ExtensionContext) {
 					context,
 					ResolveCommandType.runNew,
 				);
-				
+
 				if (resolvedCommand === null) {
 					return; // User cancelled
 				}

@@ -1,9 +1,9 @@
 import * as vscode from "vscode";
-import Command from "../models/command";
-import type TreeItem from "../TreeItem";
-import ReadableError from "../models/error";
-import { ContextValue } from "../TreeProvider";
 import type FormViewProvider from "../FormViewProvider";
+import type TreeItem from "../TreeItem";
+import { ContextValue } from "../TreeProvider";
+import Command from "../models/command";
+import ReadableError from "../models/error";
 
 export default function (formViewProvider: FormViewProvider) {
 	return async (item: TreeItem) => {
@@ -18,8 +18,7 @@ export default function (formViewProvider: FormViewProvider) {
 				item.contextValue === ContextValue.folder ? (item.id as string) : null;
 
 			// Switch focus to the top sidebar form
-			formViewProvider.prepareForm(stateType, folderId);
-			
+			formViewProvider.prepareForm(stateType, folderId, "command");
 		}, "Error Opening Command Form");
 	};
 }

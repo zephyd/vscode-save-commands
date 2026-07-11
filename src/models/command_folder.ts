@@ -1,9 +1,9 @@
 import { instanceToPlain, plainToInstance } from "class-transformer";
+import type TreeItem from "../TreeItem";
 import { uuidv4 } from "../utils";
 import type { JSONObj, PickProperties } from "./base_types";
-import { ExtensionContextListEtter, type IEtter, StateType } from "./etters";
-import type TreeItem from "../TreeItem";
 import ReadableError from "./error";
+import { ExtensionContextListEtter, type IEtter, StateType } from "./etters";
 
 const COMMAND_FOLDERS_STORAGE_KEY = "command_folders";
 

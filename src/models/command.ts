@@ -1,14 +1,14 @@
 import { instanceToPlain, plainToInstance } from "class-transformer";
-import { singleInput as takeSingleInput, uuidv4 } from "../utils";
 import type { ExtensionContext } from "vscode";
+import type TreeItem from "../TreeItem";
+import { singleInput as takeSingleInput, uuidv4 } from "../utils";
+import type { JSONObj, PickProperties } from "./base_types";
+import ReadableError from "./error";
+import { ExtensionContextListEtter, type IEtter, StateType } from "./etters";
 import {
 	FALLBACK_PLACEHOLDER_TYPE,
 	PlaceholderType,
 } from "./placeholder_types";
-import type { JSONObj, PickProperties } from "./base_types";
-import { ExtensionContextListEtter, type IEtter, StateType } from "./etters";
-import type TreeItem from "../TreeItem";
-import ReadableError from "./error";
 
 const COMMAND_STORAGE_KEY = "commands";
 
@@ -95,18 +95,19 @@ export default class Command {
 		// 1. Handle Dynamic Interactive Parameters: {{Prompt:Default}}
 		const dynamicPromptRegex = /{{([^}]+)}}/g;
 		let match;
-		
+
 		// We use a copy of the command to process one by one
 		let currentResolved = resolvedCommand;
-		
+
 		// Reset regex index
 		dynamicPromptRegex.lastIndex = 0;
 		while ((match = dynamicPromptRegex.exec(currentResolved)) !== null) {
 			const fullMatch = match[0];
 			const content = match[1];
-			const parts = content.split(':');
+			const parts = content.split(":");
 			const promptLabel = parts[0].trim();
-			const defaultValue = parts.length > 1 ? parts.slice(1).join(':').trim() : promptLabel;
+			const defaultValue =
+				parts.length > 1 ? parts.slice(1).join(":").trim() : promptLabel;
 
 			const input = await takeSingleInput({
 				promptText: `${resolveCommandType} | ${this.name} | ${promptLabel}`,
@@ -118,17 +119,17 @@ export default class Command {
 			}
 
 			const finalInput = input === "" ? defaultValue : input;
-			
+
 			// Replace only the CURRENT match. Since matches are sequential, we can replace the first occurrence of fullMatch
 			// However, to be safe with identical matches, we should replace at the regex position.
 			const before = currentResolved.substring(0, match.index);
 			const after = currentResolved.substring(match.index + fullMatch.length);
 			currentResolved = before + finalInput + after;
-			
+
 			// Adjust regex index because the length changed
 			dynamicPromptRegex.lastIndex = before.length + finalInput.length;
 		}
-		
+
 		resolvedCommand = currentResolved;
 
 		// 2. Original Placeholder Type Logic ({{}}, {}, etc.)

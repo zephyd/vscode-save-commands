@@ -1,10 +1,13 @@
-import * as vscode from "vscode";
-import Command from "../models/command";
-import type TreeItem from "../TreeItem";
-import ReadableError from "../models/error";
+import type * as vscode from "vscode";
 import type FormViewProvider from "../FormViewProvider";
+import type TreeItem from "../TreeItem";
+import Command from "../models/command";
+import ReadableError from "../models/error";
 
-export default function (context: vscode.ExtensionContext, formViewProvider: FormViewProvider) {
+export default function (
+	context: vscode.ExtensionContext,
+	formViewProvider: FormViewProvider,
+) {
 	return async (item: TreeItem) => {
 		ReadableError.runGuarded(async () => {
 			const { etter, stateType } = Command.getEtterFromTreeContext(item);
@@ -16,12 +19,16 @@ export default function (context: vscode.ExtensionContext, formViewProvider: For
 			}
 
 			// Activate the sidebar form in Edit mode
-			formViewProvider.prepareForm(stateType, item.parentFolderId ?? null, {
-				id: cmd.id,
-				name: cmd.name,
-				command: cmd.command
-			});
-			
+			formViewProvider.prepareForm(
+				stateType,
+				item.parentFolderId ?? null,
+				"command",
+				{
+					id: cmd.id,
+					name: cmd.name,
+					command: cmd.command,
+				},
+			);
 		}, "Error Editing Command");
 	};
 }
