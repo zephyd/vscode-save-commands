@@ -11,5 +11,43 @@ vsc-extension-quickstart.md
 **/*.ts
 .github/**
 media/demo.gif
-node_modules/**
 *.vsix
+
+# Exclude bundled node_modules
+node_modules/reflect-metadata/**
+node_modules/class-transformer/**
+
+# Exclude build-only node_modules dependencies
+node_modules/nan/**
+node_modules/buildcheck/**
+
+# Exclude unnecessary files inside all node_modules (including ssh2 and sub-modules)
+node_modules/**/test/**
+node_modules/**/tests/**
+node_modules/**/doc/**
+node_modules/**/docs/**
+node_modules/**/examples/**
+node_modules/**/*.md
+node_modules/**/*.txt
+node_modules/**/*.html
+node_modules/**/*.yml
+node_modules/**/*.yaml
+node_modules/**/*.ts
+node_modules/**/*.c
+node_modules/**/*.h
+node_modules/**/*.cpp
+node_modules/**/*.cc
+node_modules/**/binding.gyp
+
+# General exclusions for C++ addon build intermediates and source code across all node_modules
+node_modules/**/deps/**
+node_modules/**/src/**
+node_modules/**/build/Release/obj/**
+node_modules/**/build/Release/*.pdb
+node_modules/**/build/Release/*.lib
+node_modules/**/build/Release/*.iobj
+node_modules/**/build/Release/*.ipdb
+node_modules/**/build/*.vcxproj*
+node_modules/**/build/*.sln
+node_modules/**/build/config.gypi
+node_modules/**/build/deps/**

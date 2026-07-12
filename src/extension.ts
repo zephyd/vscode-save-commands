@@ -1,7 +1,7 @@
+import "reflect-metadata";
 import * as vscode from "vscode";
 import TreeDataProvider from "./TreeProvider";
 import { ExecCommands } from "./models/exec_commands";
-import "reflect-metadata";
 import * as fs from "node:fs";
 import DragAndDropController from "./DragAndDropController";
 import FormViewProvider from "./FormViewProvider";

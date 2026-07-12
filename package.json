@@ -3,7 +3,7 @@
   "displayName": "Save Commands Enhanced",
   "description": "Enhanced extension to save, organize and execute terminal commands efficiently.",
   "icon": "resources/logo.png",
-  "version": "1.2.1",
+  "version": "1.3.1",
   "engines": {
     "vscode": "^1.74.0"
   },
@@ -458,6 +458,41 @@
           "command": "save-commands.refreshView",
           "when": "view == save-commands-view || view == save-commands-ssh-view",
           "group": "navigation@1"
+        },
+        {
+          "command": "save-commands.goUpRemoteExplorer",
+          "group": "navigation@1",
+          "when": "view == save-commands-remote-view"
+        },
+        {
+          "command": "save-commands.refreshRemoteExplorer",
+          "group": "navigation@2",
+          "when": "view == save-commands-remote-view"
+        },
+        {
+          "command": "save-commands.openTerminalAtRemoteDir",
+          "group": "navigation@3",
+          "when": "view == save-commands-remote-view"
+        },
+        {
+          "command": "save-commands.syncExplorerToTerminal",
+          "group": "navigation@4",
+          "when": "view == save-commands-remote-view"
+        },
+        {
+          "command": "save-commands.remoteNewFile",
+          "group": "navigation@5",
+          "when": "view == save-commands-remote-view"
+        },
+        {
+          "command": "save-commands.remoteNewFolder",
+          "group": "navigation@6",
+          "when": "view == save-commands-remote-view"
+        },
+        {
+          "command": "save-commands.disconnectRemote",
+          "group": "navigation@7",
+          "when": "view == save-commands-remote-view && save-commands.remote-active"
         }
       ],
       "view/item/context": [
@@ -637,43 +672,6 @@
           "command": "save-commands.remoteUploadFolder",
           "group": "remoteClipboard@8",
           "when": "view == save-commands-remote-view"
-        }
-      ],
-      "view/title": [
-        {
-          "command": "save-commands.goUpRemoteExplorer",
-          "group": "navigation@1",
-          "when": "view == save-commands-remote-view"
-        },
-        {
-          "command": "save-commands.refreshRemoteExplorer",
-          "group": "navigation@2",
-          "when": "view == save-commands-remote-view"
-        },
-        {
-          "command": "save-commands.openTerminalAtRemoteDir",
-          "group": "navigation@3",
-          "when": "view == save-commands-remote-view"
-        },
-        {
-          "command": "save-commands.syncExplorerToTerminal",
-          "group": "navigation@4",
-          "when": "view == save-commands-remote-view"
-        },
-        {
-          "command": "save-commands.remoteNewFile",
-          "group": "navigation@5",
-          "when": "view == save-commands-remote-view"
-        },
-        {
-          "command": "save-commands.remoteNewFolder",
-          "group": "navigation@6",
-          "when": "view == save-commands-remote-view"
-        },
-        {
-          "command": "save-commands.disconnectRemote",
-          "group": "navigation@7",
-          "when": "view == save-commands-remote-view && save-commands.remote-active"
         }
       ]
     }
