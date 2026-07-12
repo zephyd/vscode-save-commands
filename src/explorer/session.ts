@@ -25,10 +25,16 @@ class SessionManager {
 	private localSession: Session;
 
 	constructor() {
+		let defaultLocalCwd = process.env.USERPROFILE || process.env.HOME || "/";
+		const workspaceFolders = vscode.workspace.workspaceFolders;
+		if (workspaceFolders && workspaceFolders.length > 0) {
+			defaultLocalCwd = workspaceFolders[0].uri.fsPath;
+		}
+
 		this.localSession = {
 			id: "local-session",
 			type: "local",
-			cwd: process.env.USERPROFILE || process.env.HOME || "/",
+			cwd: defaultLocalCwd,
 			driver: new LocalDriver(),
 		};
 	}
@@ -50,7 +56,12 @@ class SessionManager {
 
 		if (type === "local") {
 			driver = new LocalDriver();
-			cwd = options.cwd || process.env.USERPROFILE || process.env.HOME || "/";
+			let defaultLocalCwd = process.env.USERPROFILE || process.env.HOME || "/";
+			const workspaceFolders = vscode.workspace.workspaceFolders;
+			if (workspaceFolders && workspaceFolders.length > 0) {
+				defaultLocalCwd = workspaceFolders[0].uri.fsPath;
+			}
+			cwd = options.cwd || defaultLocalCwd;
 		} else if (type === "ssh") {
 			if (!options.sshConnection) {
 				throw new Error("sshConnection required for ssh session");

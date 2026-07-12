@@ -73,8 +73,15 @@ export class RemoteExplorerProvider
 	}
 
 	updateDescription(): void {
+		const session = sessionManager.getActiveSession();
+		const isRemote = session.type !== "local";
+		vscode.commands.executeCommand(
+			"setContext",
+			"save-commands.remote-active",
+			isRemote,
+		);
+
 		if (this.treeView) {
-			const session = sessionManager.getActiveSession();
 			if (session.type === "local") {
 				this.treeView.description = "Local File System";
 			} else if (session.type === "ssh") {

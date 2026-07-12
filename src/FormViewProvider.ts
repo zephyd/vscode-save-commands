@@ -54,6 +54,11 @@ export default class FormViewProvider implements vscode.WebviewViewProvider {
 						"save-commands.handleFormSubmit",
 						data.value,
 					);
+					vscode.commands.executeCommand(
+						"setContext",
+						"save-commands.form-active",
+						false,
+					);
 					break;
 				}
 				case "saveSsh": {
@@ -61,13 +66,18 @@ export default class FormViewProvider implements vscode.WebviewViewProvider {
 						"save-commands.handleSshFormSubmit",
 						data.value,
 					);
+					vscode.commands.executeCommand(
+						"setContext",
+						"save-commands.form-active",
+						false,
+					);
 					break;
 				}
 			}
 		});
 	}
 
-	public prepareForm(
+	public async prepareForm(
 		stateType: StateType,
 		folderId: string | null,
 		mode: "command" | "ssh",
@@ -83,6 +93,11 @@ export default class FormViewProvider implements vscode.WebviewViewProvider {
 			sudoPassword?: string;
 		},
 	) {
+		await vscode.commands.executeCommand(
+			"setContext",
+			"save-commands.form-active",
+			true,
+		);
 		if (this._view) {
 			this._view.show(true);
 			this._view.webview.postMessage({
@@ -239,24 +254,28 @@ export default class FormViewProvider implements vscode.WebviewViewProvider {
 						<textarea id="command" placeholder="command (e.g. npx @vscode/vsce package --no-yarn)" spellcheck="false"></textarea>
 					</div>
 					<!-- SSH Fields -->
-					<div class="input-row ssh-field" id="host-row" style="display: none;">
-						<label for="host">Host:</label>
-						<input type="text" id="host" placeholder="192.168.1.10">
+					<div class="input-row ssh-field" id="host-port-row" style="display: none; gap: 8px;">
+						<div style="flex: 1; display: flex; align-items: center; gap: 8px;">
+							<label for="host" style="width: 60px; min-width: 60px;">Host:</label>
+							<input type="text" id="host" placeholder="192.168.1.10">
+						</div>
+						<div style="width: 100px; display: flex; align-items: center; gap: 8px;">
+							<label for="port" style="width: 30px; min-width: 30px;">Port:</label>
+							<input type="text" id="port" placeholder="22">
+						</div>
 					</div>
-					<div class="input-row ssh-field" id="port-row" style="display: none;">
-						<label for="port">Port:</label>
-						<input type="text" id="port" placeholder="22">
-					</div>
-					<div class="input-row ssh-field" id="username-row" style="display: none;">
-						<label for="username">Username:</label>
-						<input type="text" id="username" placeholder="root">
-					</div>
-					<div class="input-row ssh-field" id="password-row" style="display: none;">
-						<label for="password">Password:</label>
-						<input type="password" id="password" placeholder="Password">
+					<div class="input-row ssh-field" id="user-pass-row" style="display: none; gap: 8px;">
+						<div style="flex: 1; display: flex; align-items: center; gap: 8px;">
+							<label for="username" style="width: 60px; min-width: 60px;">User:</label>
+							<input type="text" id="username" placeholder="root">
+						</div>
+						<div style="flex: 1; display: flex; align-items: center; gap: 8px;">
+							<label for="password" style="width: 30px; min-width: 30px;">Pwd:</label>
+							<input type="password" id="password" placeholder="Password">
+						</div>
 					</div>
 					<div class="input-row ssh-field" id="sudoPassword-row" style="display: none;">
-						<label for="sudoPassword">Sudo/Root Password:</label>
+						<label for="sudoPassword" style="width: 60px; min-width: 60px;">Sudo Pwd:</label>
 						<input type="password" id="sudoPassword" placeholder="Sudo/Root Password (Optional)">
 					</div>
 					<div class="footer">
@@ -420,9 +439,26 @@ export default class FormViewProvider implements vscode.WebviewViewProvider {
 					document.getElementById('save-trigger').addEventListener('click', submit);
 					
 					document.body.addEventListener('keydown', (e) => {
-						if (e.key === 'Enter' && e.target.id === 'name') {
-							e.preventDefault();
-							document.getElementById('command').focus();
+						if (e.key === 'Enter') {
+							if (currentContext.mode === 'ssh') {
+								if (!e.ctrlKey && !e.metaKey) {
+									const fieldOrder = ['name', 'host', 'port', 'username', 'password', 'sudoPassword'];
+									const currentIdx = fieldOrder.indexOf(e.target.id);
+									if (currentIdx !== -1) {
+										e.preventDefault();
+										if (currentIdx < fieldOrder.length - 1) {
+											document.getElementById(fieldOrder[currentIdx + 1]).focus();
+										} else {
+											submit();
+										}
+									}
+								}
+							} else {
+								if (e.target.id === 'name' && !e.ctrlKey && !e.metaKey) {
+									e.preventDefault();
+									document.getElementById('command').focus();
+								}
+							}
 						}
 						if (e.key === 'Enter' && (e.ctrlKey || e.metaKey)) {
 							submit();

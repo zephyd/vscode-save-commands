@@ -57,6 +57,11 @@ class TreeItem extends vscode.TreeItem {
 			};
 		} else if (this.contextValue === ContextValue.sshConnection) {
 			this.iconPath = new vscode.ThemeIcon("remote");
+			this.command = {
+				command: "save-commands.editSshConnectionDouble",
+				title: "Edit SSH Connection",
+				arguments: [this],
+			};
 		}
 	}
 }

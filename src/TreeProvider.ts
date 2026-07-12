@@ -21,8 +21,14 @@ class TreeDataProvider implements vscode.TreeDataProvider<TreeItem> {
 	readonly onDidChangeTreeData: vscode.Event<TreeItem | undefined | undefined> =
 		this._onDidChangeTreeData.event;
 	context: vscode.ExtensionContext;
-	constructor(context: vscode.ExtensionContext) {
+	mode: "commands" | "ssh";
+
+	constructor(
+		context: vscode.ExtensionContext,
+		mode: "commands" | "ssh" = "commands",
+	) {
 		this.context = context;
+		this.mode = mode;
 		this.data = [];
 		this.refreshData();
 	}
@@ -106,140 +112,153 @@ class TreeDataProvider implements vscode.TreeDataProvider<TreeItem> {
 	}
 
 	refreshData(): void {
-		const globalCommands: Array<Command> = Command.etters.global.getValue(
-			this.context,
-		);
-		const globalFolders: Array<CommandFolder> =
-			CommandFolder.etters.global.getValue(this.context);
-		const globalSshConnections: Array<SshConnection> =
-			SshConnection.etters.global.getValue(this.context);
+		if (this.mode === "commands") {
+			const globalCommands: Array<Command> = Command.etters.global.getValue(
+				this.context,
+			);
+			const globalFolders: Array<CommandFolder> =
+				CommandFolder.etters.global.getValue(this.context);
+			const workspaceCommands: Array<Command> =
+				Command.etters.workspace.getValue(this.context);
+			const workspaceFolders: Array<CommandFolder> =
+				CommandFolder.etters.workspace.getValue(this.context);
 
-		const workspaceCommands: Array<Command> = Command.etters.workspace.getValue(
-			this.context,
-		);
-		const workspaceFolders: Array<CommandFolder> =
-			CommandFolder.etters.workspace.getValue(this.context);
-		const workspaceSshConnections: Array<SshConnection> =
-			SshConnection.etters.workspace.getValue(this.context);
+			const globalTree = this.createTreeMap(
+				globalCommands,
+				globalFolders,
+				StateType.global,
+			);
+			const workspaceTree = this.createTreeMap(
+				workspaceCommands,
+				workspaceFolders,
+				StateType.workspace,
+			);
 
-		const globalTree = this.createTreeMap(
-			globalCommands,
-			globalFolders,
-			StateType.global,
-		);
-		const workspaceTree = this.createTreeMap(
-			workspaceCommands,
-			workspaceFolders,
-			StateType.workspace,
-		);
-
-		const globalSshItems: Array<TreeItem> =
-			globalSshConnections.length !== 0
-				? globalSshConnections.map(
-						(conn) =>
+			const globalTreeItems: Array<TreeItem> =
+				globalTree.length !== 0
+					? globalTree
+					: [
 							new TreeItem({
-								id: conn.id,
-								label: conn.name,
-								tooltip: `${conn.username}@${conn.host}:${conn.port}`,
-								contextValue: ContextValue.sshConnection,
+								id: null,
+								label: "No Commands Found",
+								contextValue: ContextValue.none,
 								stateType: StateType.global,
 							}),
-					)
-				: [
-						new TreeItem({
-							id: null,
-							label: "No SSH Connections Found",
-							contextValue: ContextValue.none,
-							stateType: StateType.global,
-						}),
-					];
+						];
 
-		const workspaceSshItems: Array<TreeItem> =
-			workspaceSshConnections.length !== 0
-				? workspaceSshConnections.map(
-						(conn) =>
+			const workspaceTreeItems: Array<TreeItem> =
+				workspaceTree.length !== 0
+					? workspaceTree
+					: [
 							new TreeItem({
-								id: conn.id,
-								label: conn.name,
-								tooltip: `${conn.username}@${conn.host}:${conn.port}`,
-								contextValue: ContextValue.sshConnection,
+								id: null,
+								label: "No Commands Found",
+								contextValue: ContextValue.none,
 								stateType: StateType.workspace,
 							}),
-					)
-				: [
-						new TreeItem({
-							id: null,
-							label: "No SSH Connections Found",
-							contextValue: ContextValue.none,
-							stateType: StateType.workspace,
-						}),
-					];
+						];
 
-		const globalTreeItems: Array<TreeItem> =
-			globalTree.length !== 0
-				? globalTree
-				: [
-						new TreeItem({
-							id: null,
-							label: "No Commands Found",
-							contextValue: ContextValue.none,
-							stateType: StateType.global,
-						}),
-					];
-
-		const workspaceTreeItems: Array<TreeItem> =
-			workspaceTree.length !== 0
-				? workspaceTree
-				: [
-						new TreeItem({
-							id: null,
-							label: "No Commands Found",
-							contextValue: ContextValue.none,
-							stateType: StateType.workspace,
-						}),
-					];
-
-		this.data = [
-			new TreeItem({
-				id: null,
-				label: "Global Commands",
-				tooltip: "",
-				contextValue: "root-global" as ContextValue,
-				children: globalTreeItems,
-				stateType: StateType.global,
-			}),
-			new TreeItem({
-				id: null,
-				label: "Global SSH Connections",
-				tooltip: "",
-				contextValue: "root-global-ssh" as ContextValue,
-				children: globalSshItems,
-				stateType: StateType.global,
-			}),
-		];
-
-		const hasWorkspace =
-			vscode.workspace.workspaceFolders &&
-			vscode.workspace.workspaceFolders.length > 0;
-		if (hasWorkspace) {
-			this.data.push(
+			this.data = [
 				new TreeItem({
 					id: null,
-					label: "Workspace Commands",
+					label: "Global Commands",
 					tooltip: "",
-					stateType: StateType.workspace,
-					contextValue: "root-workspace" as ContextValue,
-					children: workspaceTreeItems,
+					contextValue: "root-global" as ContextValue,
+					children: globalTreeItems,
+					stateType: StateType.global,
 				}),
+			];
+
+			const hasWorkspace =
+				vscode.workspace.workspaceFolders &&
+				vscode.workspace.workspaceFolders.length > 0;
+			if (hasWorkspace) {
+				this.data.push(
+					new TreeItem({
+						id: null,
+						label: "Workspace Commands",
+						tooltip: "",
+						stateType: StateType.workspace,
+						contextValue: "root-workspace" as ContextValue,
+						children: workspaceTreeItems,
+					}),
+				);
+			}
+		} else {
+			// SSH mode
+			const globalSshConnections: Array<SshConnection> =
+				SshConnection.etters.global.getValue(this.context);
+			const workspaceSshConnections: Array<SshConnection> =
+				SshConnection.etters.workspace.getValue(this.context);
+
+			const globalSshItems: Array<TreeItem> =
+				globalSshConnections.length !== 0
+					? globalSshConnections.map(
+							(conn) =>
+								new TreeItem({
+									id: conn.id,
+									label: conn.name,
+									tooltip: `${conn.username}@${conn.host}:${conn.port}`,
+									contextValue: ContextValue.sshConnection,
+									stateType: StateType.global,
+								}),
+						)
+					: [
+							new TreeItem({
+								id: null,
+								label: "No SSH Connections Found",
+								contextValue: ContextValue.none,
+								stateType: StateType.global,
+							}),
+						];
+
+			const workspaceSshItems: Array<TreeItem> =
+				workspaceSshConnections.length !== 0
+					? workspaceSshConnections.map(
+							(conn) =>
+								new TreeItem({
+									id: conn.id,
+									label: conn.name,
+									tooltip: `${conn.username}@${conn.host}:${conn.port}`,
+									contextValue: ContextValue.sshConnection,
+									stateType: StateType.workspace,
+								}),
+						)
+					: [
+							new TreeItem({
+								id: null,
+								label: "No SSH Connections Found",
+								contextValue: ContextValue.none,
+								stateType: StateType.workspace,
+							}),
+						];
+
+			this.data = [
 				new TreeItem({
 					id: null,
-					label: "Workspace SSH Connections",
+					label: "Global SSH Connections",
 					tooltip: "",
-					contextValue: "root-workspace-ssh" as ContextValue,
-					children: workspaceSshItems,
-					stateType: StateType.workspace,
+					contextValue: "root-global-ssh" as ContextValue,
+					children: globalSshItems,
+					stateType: StateType.global,
 				}),
-			);
+			];
+
+			const hasWorkspace =
+				vscode.workspace.workspaceFolders &&
+				vscode.workspace.workspaceFolders.length > 0;
+			if (hasWorkspace) {
+				this.data.push(
+					new TreeItem({
+						id: null,
+						label: "Workspace SSH Connections",
+						tooltip: "",
+						contextValue: "root-workspace-ssh" as ContextValue,
+						children: workspaceSshItems,
+						stateType: StateType.workspace,
+					}),
+				);
+			}
 		}
 	}
 

@@ -355,6 +355,12 @@
         "title": "Attach Kubernetes Pod...",
         "category": "Save Commands Enhanced",
         "icon": "$(symbol-interface)"
+      },
+      {
+        "command": "save-commands.disconnectRemote",
+        "title": "Disconnect Remote Connection",
+        "category": "Save Commands Enhanced",
+        "icon": "$(debug-disconnect)"
       }
     ],
     "viewsContainers": {
@@ -374,16 +380,22 @@
           "icon": "resources/enhanced_run.svg"
         },
         {
-          "id": "save-commands-form-view",
-          "name": "Add / Edit Command",
-          "type": "webview",
-          "visibility": "collapsed",
-          "icon": "resources/config.svg"
+          "id": "save-commands-ssh-view",
+          "name": "SSH Connections",
+          "icon": "resources/enhanced_run.svg"
         },
         {
           "id": "save-commands-remote-view",
           "name": "Remote File Explorer",
           "icon": "resources/folder.svg"
+        },
+        {
+          "id": "save-commands-form-view",
+          "name": "Add / Edit Command",
+          "type": "webview",
+          "visibility": "collapsed",
+          "icon": "resources/config.svg",
+          "when": "save-commands.form-active"
         }
       ]
     },
@@ -444,7 +456,7 @@
         },
         {
           "command": "save-commands.refreshView",
-          "when": "view == save-commands-view",
+          "when": "view == save-commands-view || view == save-commands-ssh-view",
           "group": "navigation@1"
         }
       ],
@@ -517,49 +529,49 @@
         {
           "command": "save-commands.sshConnect",
           "group": "inline",
-          "when": "view == save-commands-view && viewItem == sshConnection"
+          "when": "view == save-commands-ssh-view && viewItem == sshConnection"
         },
         {
           "command": "save-commands.sshConnectInActiveTerminal",
           "group": "inline",
-          "when": "view == save-commands-view && viewItem == sshConnection"
+          "when": "view == save-commands-ssh-view && viewItem == sshConnection"
         },
         {
           "command": "save-commands.deleteSshConnection",
-          "when": "view == save-commands-view && viewItem == sshConnection"
+          "when": "view == save-commands-ssh-view && viewItem == sshConnection"
         },
         {
           "command": "save-commands.editSshConnection",
           "group": "inline",
-          "when": "view == save-commands-view && viewItem == sshConnection"
+          "when": "view == save-commands-ssh-view && viewItem == sshConnection"
         },
         {
           "command": "save-commands.addSshConnection",
           "group": "inline",
-          "when": "view == save-commands-view && viewItem =~ /root-.*-ssh/"
+          "when": "view == save-commands-ssh-view && viewItem =~ /root-.*-ssh/"
         },
         {
           "command": "save-commands.openGlobalSshConfigFile",
           "group": "inline",
-          "when": "view == save-commands-view && viewItem == root-global-ssh"
+          "when": "view == save-commands-ssh-view && viewItem == root-global-ssh"
         },
         {
           "command": "save-commands.openSshConfigFile",
           "group": "inline",
-          "when": "view == save-commands-view && viewItem == root-workspace-ssh"
+          "when": "view == save-commands-ssh-view && viewItem == root-workspace-ssh"
         },
         {
           "command": "save-commands.browseRemoteFiles",
           "group": "inline",
-          "when": "view == save-commands-view && viewItem == sshConnection"
+          "when": "view == save-commands-ssh-view && viewItem == sshConnection"
         },
         {
           "command": "save-commands.attachDocker",
-          "when": "view == save-commands-view && viewItem == sshConnection"
+          "when": "view == save-commands-ssh-view && viewItem == sshConnection"
         },
         {
           "command": "save-commands.attachK8s",
-          "when": "view == save-commands-view && viewItem == sshConnection"
+          "when": "view == save-commands-ssh-view && viewItem == sshConnection"
         },
         {
           "command": "save-commands.openTerminalAtRemoteDir",
@@ -657,6 +669,11 @@
           "command": "save-commands.remoteNewFolder",
           "group": "navigation@6",
           "when": "view == save-commands-remote-view"
+        },
+        {
+          "command": "save-commands.disconnectRemote",
+          "group": "navigation@7",
+          "when": "view == save-commands-remote-view && save-commands.remote-active"
         }
       ]
     }

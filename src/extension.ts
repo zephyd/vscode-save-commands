@@ -56,7 +56,8 @@ import SshConnection from "./models/ssh_connection";
 import { getActivePlaceholderType } from "./utils";
 
 export function activate(context: vscode.ExtensionContext) {
-	const treeView = new TreeDataProvider(context);
+	const treeView = new TreeDataProvider(context, "commands");
+	const sshTreeView = new TreeDataProvider(context, "ssh");
 	const treeDnDController = new DragAndDropController(context);
 	const formViewProvider = new FormViewProvider(context);
 
@@ -81,7 +82,10 @@ export function activate(context: vscode.ExtensionContext) {
 		[ExecCommands.addFolder]: addFolderFn(context),
 		[ExecCommands.deleteFolder]: deleteFolderFn(context),
 		[ExecCommands.editFolder]: editFolderFn(context),
-		[ExecCommands.refreshView]: () => treeView.refresh(),
+		[ExecCommands.refreshView]: () => {
+			treeView.refresh();
+			sshTreeView.refresh();
+		},
 		[ExecCommands.openConfigFile]: async () => {
 			vscode.commands.executeCommand(
 				"save-commands.openFileInternal",
@@ -177,6 +181,7 @@ export function activate(context: vscode.ExtensionContext) {
 
 				etter.setValue(context, currentCommands);
 				treeView.refresh();
+				sshTreeView.refresh();
 			} catch (e) {
 				vscode.window.showErrorMessage(`Failed to save: ${e}`);
 			}
@@ -242,6 +247,7 @@ export function activate(context: vscode.ExtensionContext) {
 
 				await etter.setValue(context, currentConnections);
 				treeView.refresh();
+				sshTreeView.refresh();
 			} catch (e) {
 				vscode.window.showErrorMessage(`Failed to save SSH Connection: ${e}`);
 			}
@@ -318,14 +324,38 @@ export function activate(context: vscode.ExtensionContext) {
 		},
 	);
 
+	// Register the double-click-specific edit connection command
+	vscode.commands.registerCommand(
+		"save-commands.editSshConnectionDouble",
+		async (item: any) => {
+			const now = Date.now();
+			if (now - lastClickTime < 500 && lastClickedId === item.id) {
+				// Trigger the real edit connection command only on double click
+				await vscode.commands.executeCommand(
+					ExecCommands.editSshConnection,
+					item,
+				);
+			}
+			lastClickTime = now;
+			lastClickedId = item.id || "";
+		},
+	);
+
 	const subscriptions = Object.keys(callbacks).map((key) => {
 		return vscode.commands.registerCommand(key, callbacks[key as ExecCommands]);
 	});
 
-	vscode.window.createTreeView("save-commands-view", {
+	const commandsTreeView = vscode.window.createTreeView("save-commands-view", {
 		treeDataProvider: treeView,
 		dragAndDropController: treeDnDController,
 	});
+
+	const sshTreeViewInstance = vscode.window.createTreeView(
+		"save-commands-ssh-view",
+		{
+			treeDataProvider: sshTreeView,
+		},
+	);
 
 	// File Change Watchers
 	const workspaceFolder = vscode.workspace.workspaceFolders?.[0];
@@ -336,9 +366,18 @@ export function activate(context: vscode.ExtensionContext) {
 				".vscode/save-commands-*.json",
 			),
 		);
-		watcher.onDidChange(() => treeView.refresh());
-		watcher.onDidCreate(() => treeView.refresh());
-		watcher.onDidDelete(() => treeView.refresh());
+		watcher.onDidChange(() => {
+			treeView.refresh();
+			sshTreeView.refresh();
+		});
+		watcher.onDidCreate(() => {
+			treeView.refresh();
+			sshTreeView.refresh();
+		});
+		watcher.onDidDelete(() => {
+			treeView.refresh();
+			sshTreeView.refresh();
+		});
 		context.subscriptions.push(watcher);
 	}
 
@@ -361,6 +400,37 @@ export function activate(context: vscode.ExtensionContext) {
 		},
 	);
 	remoteExplorerProvider.setTreeView(remoteExplorerTreeView);
+
+	// Initial Context Value
+	vscode.commands.executeCommand(
+		"setContext",
+		"save-commands.form-active",
+		false,
+	);
+
+	// Collapse/Hide Add/Edit Command panel when selection in the trees changes (clicking other areas)
+	commandsTreeView.onDidChangeSelection(() => {
+		vscode.commands.executeCommand(
+			"setContext",
+			"save-commands.form-active",
+			false,
+		);
+	});
+	sshTreeViewInstance.onDidChangeSelection(() => {
+		vscode.commands.executeCommand(
+			"setContext",
+			"save-commands.form-active",
+			false,
+		);
+	});
+	remoteExplorerTreeView.onDidChangeSelection(() => {
+		vscode.commands.executeCommand(
+			"setContext",
+			"save-commands.form-active",
+			false,
+		);
+	});
+
 	remoteExplorerTreeView.onDidChangeSelection((e) => {
 		if (e.selection.length > 0) {
 			remoteExplorerProvider.setSelectedNode(e.selection[0]);
@@ -401,6 +471,16 @@ export function activate(context: vscode.ExtensionContext) {
 			"save-commands.refreshRemoteExplorer",
 			() => {
 				remoteExplorerProvider.refresh();
+			},
+		),
+		vscode.commands.registerCommand(
+			"save-commands.disconnectRemote",
+			async () => {
+				sessionManager.clearExplicitSession();
+				remoteExplorerProvider.refresh();
+				vscode.window.showInformationMessage(
+					"Disconnected from remote connection.",
+				);
 			},
 		),
 		vscode.commands.registerCommand("save-commands.goUpRemoteExplorer", () => {
