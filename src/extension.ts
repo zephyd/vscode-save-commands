@@ -5,10 +5,15 @@ import "reflect-metadata";
 import * as fs from "node:fs";
 import DragAndDropController from "./DragAndDropController";
 import FormViewProvider from "./FormViewProvider";
+import { remoteExplorerProvider } from "./explorer/remoteExplorerProvider";
+import { remoteFileSystemProvider } from "./explorer/remoteFileSystemProvider";
+import { sshPool } from "./explorer/sshPool";
+import { sessionManager } from "./explorer/session";
 import {
 	addCommandFn,
 	addFolderFn,
 	addSshConnectionFn,
+	browseRemoteFilesFn,
 	copyCommandFn,
 	deleteCommandFn,
 	deleteCommandsFn,
@@ -17,6 +22,7 @@ import {
 	editCommandFn,
 	editFolderFn,
 	editSshConnectionFn,
+	openTerminalAtRemoteDirFn,
 	resetFn,
 	runCommandFn,
 	runCommandInActiveTerminalFn,
@@ -24,6 +30,7 @@ import {
 	runFolderInActiveTerminalFn,
 	sshConnectFn,
 	sshConnectInActiveTerminalFn,
+	syncExplorerToTerminalFn,
 } from "./functions";
 import Command from "./models/command";
 import { StateType } from "./models/etters";
@@ -311,6 +318,77 @@ export function activate(context: vscode.ExtensionContext) {
 	}
 
 	context.subscriptions.push(...subscriptions);
+
+	// Register Remote FileSystemProvider
+	context.subscriptions.push(
+		vscode.workspace.registerFileSystemProvider(
+			"save-commands-remote",
+			remoteFileSystemProvider,
+			{ isCaseSensitive: true },
+		),
+	);
+
+	// Register Remote Explorer Tree View
+	const remoteExplorerTreeView = vscode.window.createTreeView(
+		"save-commands-remote-view",
+		{
+			treeDataProvider: remoteExplorerProvider,
+		},
+	);
+	remoteExplorerTreeView.onDidChangeSelection((e) => {
+		if (e.selection.length > 0) {
+			remoteExplorerProvider.setSelectedNode(e.selection[0]);
+		} else {
+			remoteExplorerProvider.setSelectedNode(undefined);
+		}
+	});
+	context.subscriptions.push(remoteExplorerTreeView);
+
+	// Active Terminal Listener
+	context.subscriptions.push(
+		vscode.window.onDidChangeActiveTerminal(() => {
+			remoteExplorerProvider.refresh();
+		}),
+	);
+
+	// Register explorer commands
+	context.subscriptions.push(
+		vscode.commands.registerCommand(
+			"save-commands.browseRemoteFiles",
+			browseRemoteFilesFn(context),
+		),
+		vscode.commands.registerCommand(
+			"save-commands.openTerminalAtRemoteDir",
+			openTerminalAtRemoteDirFn(context),
+		),
+		vscode.commands.registerCommand(
+			"save-commands.syncExplorerToTerminal",
+			syncExplorerToTerminalFn(context),
+		),
+		vscode.commands.registerCommand(
+			"save-commands.refreshRemoteExplorer",
+			() => {
+				remoteExplorerProvider.refresh();
+			},
+		),
+		vscode.commands.registerCommand("save-commands.goUpRemoteExplorer", () => {
+			const session = sessionManager.getActiveSession();
+			if (session.cwd && session.cwd !== "/") {
+				const normalized = session.cwd.replace(/\\/g, "/");
+				const lastSlash = normalized.lastIndexOf("/");
+				let parent = "/";
+				if (lastSlash > 0) {
+					parent = normalized.substring(0, lastSlash);
+				} else if (normalized.includes(":") && !normalized.endsWith("/")) {
+					parent = normalized.substring(0, normalized.indexOf(":") + 1) + "/";
+				}
+				session.cwd = parent;
+				remoteExplorerProvider.refresh();
+			}
+		}),
+	);
 }
 
-export function deactivate() {}
+export function deactivate() {
+	sshPool.closeAll();
+}
