@@ -17,7 +17,7 @@ export default function (context: vscode.ExtensionContext) {
 			} catch (e) {}
 		}
 
-		let rawOutput: Buffer;
+		let rawOutput: Buffer | undefined;
 		try {
 			if (conn) {
 				const session = await sshPool.getSSH(conn);
@@ -40,38 +40,41 @@ export default function (context: vscode.ExtensionContext) {
 				errMsg +=
 					"\n\n💡 Tip: Run 'sudo usermod -aG docker $USER' on the remote host, then close and reconnect SSH to apply group permissions.";
 			}
-			vscode.window.showErrorMessage(
-				`Failed to list Docker containers: ${errMsg}`,
+			vscode.window.showWarningMessage(
+				`Failed to list Docker containers: ${errMsg}. Falling back to manual input.`,
 			);
-			return;
 		}
 
-		const lines = rawOutput
-			.toString()
-			.split("\n")
-			.map((l) => l.trim())
-			.filter((l) => l !== "");
+		const quickPickItems = [
+			{
+				label: "$(pencil) Enter container ID/Name manually...",
+				description: "Skip list search and input target name directly",
+				detail: "",
+				id: "__manual__",
+			},
+		];
 
-		if (lines.length === 0) {
-			vscode.window.showInformationMessage(
-				"No running Docker containers found.",
-			);
-			return;
+		if (rawOutput) {
+			const lines = rawOutput
+				.toString()
+				.split("\n")
+				.map((l) => l.trim())
+				.filter((l) => l !== "");
+
+			for (const line of lines) {
+				const parts = line.split("\t");
+				const id = parts[0];
+				const name = parts[1] || "Unnamed";
+				const image = parts[2] || "Unknown Image";
+				const status = parts[3] || "";
+				quickPickItems.push({
+					label: name,
+					description: `${image} (${id})`,
+					detail: status,
+					id,
+				});
+			}
 		}
-
-		const quickPickItems = lines.map((line) => {
-			const parts = line.split("\t");
-			const id = parts[0];
-			const name = parts[1] || "Unnamed";
-			const image = parts[2] || "Unknown Image";
-			const status = parts[3] || "";
-			return {
-				label: name,
-				description: `${image} (${id})`,
-				detail: status,
-				id,
-			};
-		});
 
 		const selected = await vscode.window.showQuickPick(quickPickItems, {
 			placeHolder: "Select a Docker container to attach to",
@@ -79,8 +82,21 @@ export default function (context: vscode.ExtensionContext) {
 
 		if (!selected) return;
 
+		let containerId = selected.id;
+		let containerLabel = selected.label;
+
+		if (selected.id === "__manual__") {
+			const manualId = await vscode.window.showInputBox({
+				placeHolder: "Enter Docker Container ID or Name",
+				prompt: "Type the target Container ID or Name to attach to",
+			});
+			if (!manualId || !manualId.trim()) return;
+			containerId = manualId.trim();
+			containerLabel = manualId.trim();
+		}
+
 		const session = sessionManager.createSession("docker", {
-			containerId: selected.id,
+			containerId: containerId,
 			sshConnection: conn,
 		});
 
@@ -88,7 +104,7 @@ export default function (context: vscode.ExtensionContext) {
 		remoteExplorerProvider.refresh();
 		await vscode.commands.executeCommand("save-commands-remote-view.focus");
 		vscode.window.showInformationMessage(
-			`Attached to Docker container: ${selected.label}`,
+			`Attached to Docker container: ${containerLabel}`,
 		);
 	};
 }

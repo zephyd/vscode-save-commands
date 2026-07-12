@@ -17,7 +17,7 @@ export default function (context: vscode.ExtensionContext) {
 			} catch (e) {}
 		}
 
-		let rawOutput: Buffer;
+		let rawOutput: Buffer | undefined;
 		try {
 			const cmd = `kubectl get pods -A -o jsonpath='{range .items[*]}{.metadata.namespace}{"\\t"}{.metadata.name}{"\\t"}{range .spec.containers[*]}{.name}{","}{end}{"\\n"}{end}'`;
 			if (conn) {
@@ -27,37 +27,44 @@ export default function (context: vscode.ExtensionContext) {
 				rawOutput = await execLocal(cmd);
 			}
 		} catch (e: any) {
-			vscode.window.showErrorMessage(
-				`Failed to list Kubernetes pods: ${e.message || e}`,
+			vscode.window.showWarningMessage(
+				`Failed to list Kubernetes pods: ${e.message || e}. Falling back to manual input.`,
 			);
-			return;
 		}
 
-		const lines = rawOutput
-			.toString()
-			.split("\n")
-			.map((l) => l.trim())
-			.filter((l) => l !== "");
+		const quickPickItems = [
+			{
+				label: "$(pencil) Enter pod details manually...",
+				description: "Skip list search and input namespace/pod name directly",
+				detail: "",
+				podName: "__manual__",
+				namespace: "",
+				containers: [] as string[],
+			},
+		];
 
-		if (lines.length === 0) {
-			vscode.window.showInformationMessage("No Kubernetes pods found.");
-			return;
+		if (rawOutput) {
+			const lines = rawOutput
+				.toString()
+				.split("\n")
+				.map((l) => l.trim())
+				.filter((l) => l !== "");
+
+			for (const line of lines) {
+				const parts = line.split("\t");
+				const namespace = parts[0];
+				const podName = parts[1];
+				const containers = (parts[2] || "").split(",").filter((c) => c !== "");
+				quickPickItems.push({
+					label: podName,
+					description: `Namespace: ${namespace}`,
+					detail: `Containers: ${containers.join(", ")}`,
+					podName,
+					namespace,
+					containers,
+				});
+			}
 		}
-
-		const quickPickItems = lines.map((line) => {
-			const parts = line.split("\t");
-			const namespace = parts[0];
-			const podName = parts[1];
-			const containers = (parts[2] || "").split(",").filter((c) => c !== "");
-			return {
-				label: podName,
-				description: `Namespace: ${namespace}`,
-				detail: `Containers: ${containers.join(", ")}`,
-				podName,
-				namespace,
-				containers,
-			};
-		});
 
 		const selectedPod = await vscode.window.showQuickPick(quickPickItems, {
 			placeHolder: "Select a Kubernetes pod to attach to",
@@ -65,22 +72,49 @@ export default function (context: vscode.ExtensionContext) {
 
 		if (!selectedPod) return;
 
+		let namespace = selectedPod.namespace;
+		let podName = selectedPod.podName;
 		let containerName: string | undefined;
-		if (selectedPod.containers.length > 1) {
-			containerName = await vscode.window.showQuickPick(
-				selectedPod.containers,
-				{
-					placeHolder: "Select container in the pod",
-				},
-			);
-			if (!containerName) return;
-		} else if (selectedPod.containers.length === 1) {
-			containerName = selectedPod.containers[0];
+
+		if (selectedPod.podName === "__manual__") {
+			const manualNs = await vscode.window.showInputBox({
+				placeHolder: "Enter Kubernetes Namespace (e.g. default)",
+				prompt: "Type the namespace of the target pod",
+				value: "default",
+			});
+			if (!manualNs || !manualNs.trim()) return;
+			namespace = manualNs.trim();
+
+			const manualPod = await vscode.window.showInputBox({
+				placeHolder: "Enter Pod Name",
+				prompt: "Type the name of the target pod",
+			});
+			if (!manualPod || !manualPod.trim()) return;
+			podName = manualPod.trim();
+
+			const manualContainer = await vscode.window.showInputBox({
+				placeHolder: "Enter Container Name (Optional)",
+				prompt:
+					"Type the container name if the pod has multiple containers (leave empty for default)",
+			});
+			containerName = manualContainer?.trim() || undefined;
+		} else {
+			if (selectedPod.containers.length > 1) {
+				containerName = await vscode.window.showQuickPick(
+					selectedPod.containers,
+					{
+						placeHolder: "Select container in the pod",
+					},
+				);
+				if (!containerName) return;
+			} else if (selectedPod.containers.length === 1) {
+				containerName = selectedPod.containers[0];
+			}
 		}
 
 		const session = sessionManager.createSession("k8s", {
-			podName: selectedPod.podName,
-			namespace: selectedPod.namespace,
+			podName: podName,
+			namespace: namespace,
 			containerName,
 			sshConnection: conn,
 		});
@@ -89,7 +123,7 @@ export default function (context: vscode.ExtensionContext) {
 		remoteExplorerProvider.refresh();
 		await vscode.commands.executeCommand("save-commands-remote-view.focus");
 		vscode.window.showInformationMessage(
-			`Attached to Kubernetes Pod: ${selectedPod.label}${
+			`Attached to Kubernetes Pod: ${podName}${
 				containerName ? ` (${containerName})` : ""
 			}`,
 		);
