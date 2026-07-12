@@ -14,6 +14,7 @@ export default class SshConnection {
 	port!: number;
 	username!: string;
 	password!: string;
+	sudoPassword?: string;
 	sortOrder?: number;
 
 	static create(fields: {
@@ -22,6 +23,7 @@ export default class SshConnection {
 		port: number;
 		username: string;
 		password: string;
+		sudoPassword?: string;
 	}) {
 		return SshConnection.fromJsonSafe({
 			id: uuidv4(),
@@ -30,6 +32,7 @@ export default class SshConnection {
 			port: fields.port,
 			username: fields.username,
 			password: fields.password,
+			sudoPassword: fields.sudoPassword,
 			sortOrder: 0,
 		});
 	}

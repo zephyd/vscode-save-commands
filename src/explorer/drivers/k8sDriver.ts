@@ -23,7 +23,12 @@ export class K8sDriver implements FSDriver {
 	): Promise<Buffer> {
 		if (this.sshConnection) {
 			const session = await sshPool.getSSH(this.sshConnection);
-			return execSsh(session.client, cmd, stdinData);
+			return execSsh(
+				session.client,
+				cmd,
+				stdinData,
+				this.sshConnection.sudoPassword,
+			);
 		}
 		return execLocal(cmd, stdinData);
 	}

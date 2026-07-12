@@ -1,38 +1,30 @@
 import * as vscode from "vscode";
 import type SshConnection from "../../models/ssh_connection";
 import { sshPool } from "../sshPool";
-import { execLocal, execSsh } from "./driverUtils";
+import { execSsh } from "./driverUtils";
 import type { FSDriver, FSEntry } from "./fsDriver";
 
-export class DockerDriver implements FSDriver {
-	constructor(
-		private containerId: string,
-		private sshConnection?: SshConnection,
-	) {}
+export class SshHostDriver implements FSDriver {
+	constructor(private sshConnection: SshConnection) {}
 
 	private async runCommand(
 		cmd: string,
 		stdinData?: Uint8Array,
 	): Promise<Buffer> {
-		if (this.sshConnection) {
-			const session = await sshPool.getSSH(this.sshConnection);
-			return execSsh(
-				session.client,
-				cmd,
-				stdinData,
-				this.sshConnection.sudoPassword,
-			);
-		}
-		return execLocal(cmd, stdinData);
+		const session = await sshPool.getSSH(this.sshConnection);
+		return execSsh(
+			session.client,
+			cmd,
+			stdinData,
+			this.sshConnection.sudoPassword,
+		);
 	}
 
 	public async stat(path: string): Promise<vscode.FileStat> {
 		const cleanPath = this.escapePath(path);
 		try {
-			const output = await this.runCommand(
-				`docker exec ${this.containerId} stat -c "%s %Y %F" ${cleanPath}`,
-			);
-			const parts = output.toString().trim().split(" ");
+			const output = await this.runCommand(`stat -c "%s %Y %F" ${cleanPath}`);
+			const parts = output.toString().trim().split(/\s+/);
 			const size = Number.parseInt(parts[0], 10);
 			const mtime = Number.parseInt(parts[1], 10) * 1000;
 			const typeStr = parts.slice(2).join(" ").toLowerCase();
@@ -52,9 +44,7 @@ export class DockerDriver implements FSDriver {
 			};
 		} catch (e) {
 			try {
-				await this.runCommand(
-					`docker exec ${this.containerId} test -d ${cleanPath}`,
-				);
+				await this.runCommand(`test -d ${cleanPath}`);
 				return {
 					type: vscode.FileType.Directory,
 					ctime: 0,
@@ -63,14 +53,10 @@ export class DockerDriver implements FSDriver {
 				};
 			} catch (errD) {
 				try {
-					await this.runCommand(
-						`docker exec ${this.containerId} test -f ${cleanPath}`,
-					);
+					await this.runCommand(`test -f ${cleanPath}`);
 					let size = 0;
 					try {
-						const sizeOutput = await this.runCommand(
-							`docker exec ${this.containerId} wc -c < ${cleanPath}`,
-						);
+						const sizeOutput = await this.runCommand(`wc -c < ${cleanPath}`);
 						size = Number.parseInt(sizeOutput.toString().trim(), 10) || 0;
 					} catch (errSz) {}
 					return {
@@ -88,9 +74,7 @@ export class DockerDriver implements FSDriver {
 
 	public async readDirectory(path: string): Promise<FSEntry[]> {
 		const cleanPath = this.escapePath(path);
-		const output = await this.runCommand(
-			`docker exec ${this.containerId} ls -F -A ${cleanPath}`,
-		);
+		const output = await this.runCommand(`ls -F -A ${cleanPath}`);
 		const lines = output
 			.toString()
 			.split("\n")
@@ -117,9 +101,7 @@ export class DockerDriver implements FSDriver {
 
 	public async readFile(path: string): Promise<Uint8Array> {
 		const cleanPath = this.escapePath(path);
-		const output = await this.runCommand(
-			`docker exec ${this.containerId} cat ${cleanPath}`,
-		);
+		const output = await this.runCommand(`cat ${cleanPath}`);
 		return new Uint8Array(output);
 	}
 
@@ -136,10 +118,7 @@ export class DockerDriver implements FSDriver {
 				await this.createDirectory(parent);
 			}
 		}
-		await this.runCommand(
-			`docker exec -i ${this.containerId} sh -c "cat > ${cleanPath}"`,
-			content,
-		);
+		await this.runCommand(`cat > ${cleanPath}`, content);
 	}
 
 	public async delete(
@@ -148,9 +127,7 @@ export class DockerDriver implements FSDriver {
 	): Promise<void> {
 		const cleanPath = this.escapePath(path);
 		const flags = options.recursive ? "-rf" : "-f";
-		await this.runCommand(
-			`docker exec ${this.containerId} rm ${flags} ${cleanPath}`,
-		);
+		await this.runCommand(`rm ${flags} ${cleanPath}`);
 	}
 
 	public async rename(
@@ -166,16 +143,12 @@ export class DockerDriver implements FSDriver {
 				throw new Error(`Destination path already exists: ${newPath}`);
 			} catch (e) {}
 		}
-		await this.runCommand(
-			`docker exec ${this.containerId} mv ${cleanOld} ${cleanNew}`,
-		);
+		await this.runCommand(`mv ${cleanOld} ${cleanNew}`);
 	}
 
 	public async createDirectory(path: string): Promise<void> {
 		const cleanPath = this.escapePath(path);
-		await this.runCommand(
-			`docker exec ${this.containerId} mkdir -p ${cleanPath}`,
-		);
+		await this.runCommand(`mkdir -p ${cleanPath}`);
 	}
 
 	private escapePath(path: string): string {

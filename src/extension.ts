@@ -191,12 +191,21 @@ export function activate(context: vscode.ExtensionContext) {
 			port: number;
 			username: string;
 			password?: string;
+			sudoPassword?: string;
 			stateType: StateType;
 			commandId?: string | null;
 		}) => {
 			try {
-				const { name, host, port, username, password, stateType, commandId } =
-					data;
+				const {
+					name,
+					host,
+					port,
+					username,
+					password,
+					sudoPassword,
+					stateType,
+					commandId,
+				} = data;
 				const etter =
 					stateType === StateType.global
 						? SshConnection.etters.global
@@ -212,6 +221,7 @@ export function activate(context: vscode.ExtensionContext) {
 						currentConnections[idx].port = port;
 						currentConnections[idx].username = username.trim();
 						currentConnections[idx].password = (password || "").trim();
+						currentConnections[idx].sudoPassword = (sudoPassword || "").trim();
 						vscode.window.showInformationMessage(
 							`Updated SSH Connection: ${name}`,
 						);
@@ -224,6 +234,7 @@ export function activate(context: vscode.ExtensionContext) {
 						port: port,
 						username: username.trim(),
 						password: (password || "").trim(),
+						sudoPassword: (sudoPassword || "").trim(),
 					});
 					currentConnections.push(newConn);
 					vscode.window.showInformationMessage(`Added SSH Connection: ${name}`);

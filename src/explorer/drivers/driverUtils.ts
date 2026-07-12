@@ -5,9 +5,16 @@ export function execSsh(
 	client: Client,
 	cmd: string,
 	stdinData?: Uint8Array,
+	sudoPassword?: string,
 ): Promise<Buffer> {
 	return new Promise((resolve, reject) => {
-		client.exec(cmd, (err, stream) => {
+		let finalCmd = cmd;
+		if (sudoPassword && !cmd.startsWith("sudo -S")) {
+			const escaped = cmd.replace(/'/g, "'\\''");
+			finalCmd = `sudo -S sh -c '${escaped}'`;
+		}
+
+		client.exec(finalCmd, (err, stream) => {
 			if (err) return reject(err);
 
 			const stdoutChunks: any[] = [];
@@ -18,7 +25,10 @@ export function execSsh(
 			});
 
 			stream.stderr.on("data", (data: Buffer) => {
-				stderrChunks.push(data);
+				const str = data.toString();
+				if (!str.includes("[sudo] password") && !str.includes("password for")) {
+					stderrChunks.push(data);
+				}
 			});
 
 			stream.on("close", (code: number) => {
@@ -30,8 +40,15 @@ export function execSsh(
 				}
 			});
 
+			if (sudoPassword) {
+				stream.write(`${sudoPassword}\n`);
+			}
+
 			if (stdinData) {
 				stream.write(stdinData);
+			}
+
+			if (sudoPassword || stdinData) {
 				stream.end();
 			}
 		});

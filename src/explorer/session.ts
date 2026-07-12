@@ -5,6 +5,7 @@ import type { FSDriver } from "./drivers/fsDriver";
 import { K8sDriver } from "./drivers/k8sDriver";
 import { LocalDriver } from "./drivers/localDriver";
 import { SFTPDriver } from "./drivers/sftpDriver";
+import { SshHostDriver } from "./drivers/sshHostDriver";
 
 export interface Session {
 	id: string;
@@ -54,7 +55,11 @@ class SessionManager {
 			if (!options.sshConnection) {
 				throw new Error("sshConnection required for ssh session");
 			}
-			driver = new SFTPDriver(options.sshConnection);
+			if (options.sshConnection.sudoPassword) {
+				driver = new SshHostDriver(options.sshConnection);
+			} else {
+				driver = new SFTPDriver(options.sshConnection);
+			}
 			cwd = options.cwd || "/";
 		} else if (type === "docker") {
 			if (!options.containerId) {
