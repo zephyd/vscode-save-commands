@@ -14,6 +14,8 @@ import {
 	addCommandFn,
 	addFolderFn,
 	addSshConnectionFn,
+	attachDockerFn,
+	attachK8sFn,
 	browseRemoteFilesFn,
 	copyCommandFn,
 	deleteCommandFn,
@@ -340,7 +342,6 @@ export function activate(context: vscode.ExtensionContext) {
 		),
 	);
 
-	// Register Remote Explorer Tree View
 	const remoteExplorerTreeView = vscode.window.createTreeView(
 		"save-commands-remote-view",
 		{
@@ -348,6 +349,7 @@ export function activate(context: vscode.ExtensionContext) {
 			dragAndDropController: new RemoteDragAndDropController(),
 		},
 	);
+	remoteExplorerProvider.setTreeView(remoteExplorerTreeView);
 	remoteExplorerTreeView.onDidChangeSelection((e) => {
 		if (e.selection.length > 0) {
 			remoteExplorerProvider.setSelectedNode(e.selection[0]);
@@ -359,7 +361,13 @@ export function activate(context: vscode.ExtensionContext) {
 
 	// Active Terminal Listener
 	context.subscriptions.push(
-		vscode.window.onDidChangeActiveTerminal(() => {
+		vscode.window.onDidChangeActiveTerminal((terminal) => {
+			if (terminal && (terminal as any)._sessionId) {
+				const session = sessionManager.getSession((terminal as any)._sessionId);
+				if (session) {
+					sessionManager.setExplicitSession(session);
+				}
+			}
 			remoteExplorerProvider.refresh();
 		}),
 	);
@@ -446,6 +454,14 @@ export function activate(context: vscode.ExtensionContext) {
 		vscode.commands.registerCommand(
 			"save-commands.remoteUploadFolder",
 			remoteUploadFn(context, "folder"),
+		),
+		vscode.commands.registerCommand(
+			"save-commands.attachDocker",
+			attachDockerFn(context),
+		),
+		vscode.commands.registerCommand(
+			"save-commands.attachK8s",
+			attachK8sFn(context),
 		),
 	);
 }

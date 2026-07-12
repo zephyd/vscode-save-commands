@@ -33,7 +33,13 @@ export class RemoteFileSystemProvider implements vscode.FileSystemProvider {
 			const driver = this.getDriver(uri);
 			return await driver.stat(uri.path);
 		} catch (e: any) {
-			if (e.code === "ENOENT" || e.message?.includes("No such file")) {
+			const errMsg = e.message || "";
+			if (
+				e.code === "ENOENT" ||
+				errMsg.includes("No such file") ||
+				errMsg.includes("not found") ||
+				errMsg.includes("ENOENT")
+			) {
 				throw vscode.FileSystemError.FileNotFound(uri);
 			}
 			throw e;

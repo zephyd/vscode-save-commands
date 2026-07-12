@@ -5,6 +5,16 @@ import { sessionManager } from "../../explorer/session";
 export default function (context: vscode.ExtensionContext) {
 	return async () => {
 		const activeTerminal = vscode.window.activeTerminal;
+		if (activeTerminal && (activeTerminal as any)._sessionId) {
+			const session = sessionManager.getSession(
+				(activeTerminal as any)._sessionId,
+			);
+			if (session) {
+				sessionManager.setExplicitSession(session);
+			}
+		} else {
+			sessionManager.clearExplicitSession();
+		}
 		const activeSession = sessionManager.getActiveSession();
 
 		let detectedCwd: string | undefined;

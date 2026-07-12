@@ -1,6 +1,8 @@
 import * as vscode from "vscode";
 import type SshConnection from "../models/ssh_connection";
+import { DockerDriver } from "./drivers/dockerDriver";
 import type { FSDriver } from "./drivers/fsDriver";
+import { K8sDriver } from "./drivers/k8sDriver";
 import { LocalDriver } from "./drivers/localDriver";
 import { SFTPDriver } from "./drivers/sftpDriver";
 
@@ -54,8 +56,24 @@ class SessionManager {
 			}
 			driver = new SFTPDriver(options.sshConnection);
 			cwd = options.cwd || "/";
+		} else if (type === "docker") {
+			if (!options.containerId) {
+				throw new Error("containerId required for docker session");
+			}
+			driver = new DockerDriver(options.containerId, options.sshConnection);
+			cwd = options.cwd || "/";
+		} else if (type === "k8s") {
+			if (!options.podName || !options.namespace) {
+				throw new Error("podName and namespace required for k8s session");
+			}
+			driver = new K8sDriver(
+				options.podName,
+				options.namespace,
+				options.containerName,
+				options.sshConnection,
+			);
+			cwd = options.cwd || "/";
 		} else {
-			// Placeholder fallback to local driver (Phase 2 & 3 will replace this)
 			driver = new LocalDriver();
 		}
 
@@ -93,14 +111,14 @@ class SessionManager {
 	}
 
 	public getActiveSession(): Session {
+		if (this.explicitSession) {
+			return this.explicitSession;
+		}
+
 		const activeTerminal = vscode.window.activeTerminal as any;
 		if (activeTerminal?._sessionId) {
 			const session = this.sessions.get(activeTerminal._sessionId);
 			if (session) return session;
-		}
-
-		if (this.explicitSession) {
-			return this.explicitSession;
 		}
 
 		return this.localSession;

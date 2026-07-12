@@ -4,8 +4,20 @@ import * as vscode from "vscode";
 import type { FSDriver, FSEntry } from "./fsDriver";
 
 export class LocalDriver implements FSDriver {
+	private cleanPath(p: string): string {
+		if (process.platform === "win32") {
+			let res = p;
+			if (/^\/[a-zA-Z]:/.test(res)) {
+				res = res.substring(1);
+			}
+			return res.replace(/\//g, "\\");
+		}
+		return p;
+	}
+
 	async stat(filePath: string): Promise<vscode.FileStat> {
-		const stats = await fs.stat(filePath);
+		const clean = this.cleanPath(filePath);
+		const stats = await fs.stat(clean);
 		return {
 			type: stats.isDirectory()
 				? vscode.FileType.Directory
@@ -21,11 +33,12 @@ export class LocalDriver implements FSDriver {
 	}
 
 	async readDirectory(dirPath: string): Promise<FSEntry[]> {
-		const names = await fs.readdir(dirPath);
+		const clean = this.cleanPath(dirPath);
+		const names = await fs.readdir(clean);
 		const entries: FSEntry[] = [];
 		for (const name of names) {
 			try {
-				const fullPath = path.join(dirPath, name);
+				const fullPath = path.join(clean, name);
 				const s = await this.stat(fullPath);
 				entries.push({ name, type: s.type });
 			} catch (e) {
@@ -36,7 +49,8 @@ export class LocalDriver implements FSDriver {
 	}
 
 	async readFile(filePath: string): Promise<Uint8Array> {
-		const buf = await fs.readFile(filePath);
+		const clean = this.cleanPath(filePath);
+		const buf = await fs.readFile(clean);
 		return new Uint8Array(buf.buffer, buf.byteOffset, buf.byteLength);
 	}
 
@@ -45,16 +59,18 @@ export class LocalDriver implements FSDriver {
 		content: Uint8Array,
 		options: { create: boolean; overwrite: boolean },
 	): Promise<void> {
-		const parent = path.dirname(filePath);
+		const clean = this.cleanPath(filePath);
+		const parent = path.dirname(clean);
 		await fs.mkdir(parent, { recursive: true });
-		await fs.writeFile(filePath, content);
+		await fs.writeFile(clean, content);
 	}
 
 	async delete(
 		filePath: string,
 		options: { recursive: boolean },
 	): Promise<void> {
-		await fs.rm(filePath, { recursive: true, force: true });
+		const clean = this.cleanPath(filePath);
+		await fs.rm(clean, { recursive: true, force: true });
 	}
 
 	async rename(
@@ -62,10 +78,13 @@ export class LocalDriver implements FSDriver {
 		newPath: string,
 		options: { overwrite: boolean },
 	): Promise<void> {
-		await fs.rename(oldPath, newPath);
+		const cleanOld = this.cleanPath(oldPath);
+		const cleanNew = this.cleanPath(newPath);
+		await fs.rename(cleanOld, cleanNew);
 	}
 
 	async createDirectory(dirPath: string): Promise<void> {
-		await fs.mkdir(dirPath, { recursive: true });
+		const clean = this.cleanPath(dirPath);
+		await fs.mkdir(clean, { recursive: true });
 	}
 }

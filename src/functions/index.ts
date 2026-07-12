@@ -7,6 +7,8 @@ import deleteFolderFn from "./deleteFolder";
 import editCommandFn from "./editCommand";
 import editFolderFn from "./editFolder";
 import addSshConnectionFn from "./remote/addSshConnection";
+import attachDockerFn from "./remote/attachDocker";
+import attachK8sFn from "./remote/attachK8s";
 import browseRemoteFilesFn from "./remote/browseRemoteFiles";
 import deleteSshConnectionFn from "./remote/deleteSshConnection";
 import editSshConnectionFn from "./remote/editSshConnection";
@@ -64,4 +66,6 @@ export {
 	remotePasteFn,
 	remoteDownloadFn,
 	remoteUploadFn,
+	attachDockerFn,
+	attachK8sFn,
 };

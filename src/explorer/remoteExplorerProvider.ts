@@ -65,7 +65,40 @@ export class RemoteExplorerProvider
 		this.clipboardIsCut = false;
 	}
 
+	private treeView?: vscode.TreeView<FileNode>;
+
+	setTreeView(treeView: vscode.TreeView<FileNode>): void {
+		this.treeView = treeView;
+		this.updateDescription();
+	}
+
+	updateDescription(): void {
+		if (this.treeView) {
+			const session = sessionManager.getActiveSession();
+			if (session.type === "local") {
+				this.treeView.description = "Local File System";
+			} else if (session.type === "ssh") {
+				const conn = session.sshConnection;
+				this.treeView.description = conn
+					? `SSH: ${conn.name}`
+					: "SSH Connection";
+			} else if (session.type === "docker") {
+				const containerName = session.containerId?.substring(0, 12) || "";
+				const connName = session.sshConnection
+					? ` @ ${session.sshConnection.name}`
+					: "";
+				this.treeView.description = `Docker: ${containerName}${connName}`;
+			} else if (session.type === "k8s") {
+				const connName = session.sshConnection
+					? ` @ ${session.sshConnection.name}`
+					: "";
+				this.treeView.description = `K8s: ${session.podName}${connName}`;
+			}
+		}
+	}
+
 	refresh(): void {
+		this.updateDescription();
 		this._onDidChangeTreeData.fire(undefined);
 	}
 

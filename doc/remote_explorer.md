@@ -1,12 +1,12 @@
-# Remote File Explorer - Phase 1 Documentation
+# Remote File Explorer - Phase 2 & 3 Documentation
 
-This document describes the design, features, directory structure, and architecture of Phase 1 of the **Terminal-Synchronized Remote File Explorer**.
+This document describes the design, features, directory structure, and architecture of the **Terminal-Synchronized Remote File Explorer** with full support for Local/Remote Docker Containers and Kubernetes Pods.
 
 ---
 
 ## 1. Features (功能特性)
 
-Phase 1 establishes a fully functional, terminal-synchronized file browser inside VS Code for browsing and managing files both locally and on remote SSH servers (via SFTP).
+This system establishes a fully functional, terminal-synchronized file browser inside VS Code for browsing and managing files locally, on remote SSH servers (via SFTP), inside Docker containers, and inside Kubernetes pods.
 
 ### Core Features:
 - **Terminal Synchronization (终端联动)**:
@@ -17,8 +17,13 @@ Phase 1 establishes a fully functional, terminal-synchronized file browser insid
 - **Real-time Refresh**: A refresh button (`$(refresh)`) to reload the file tree and display files created in external terminal programs.
 - **Selection-Aware Syncing**: Linking the sync paths to the currently highlighted item in the explorer view for swift CWD syncing.
 - **Virtual FileSystemProvider (`save-commands-remote://`)**:
-  - Double-click remote files to open them directly in VS Code's editor in-memory (no local temporary files are created on disk).
   - Modify and hit `Ctrl+S` to write changes back to the remote server immediately over the pooled SSH channel.
+- **Docker Container Integration (Docker 容器集成)**:
+  - Attach to any running Docker container locally or on a remote SSH host.
+  - Browse container files, create, rename, delete, copy, paste, and download files directly.
+- **Kubernetes Pod Integration (Kubernetes Pod 集成)**:
+  - Attach to any Kubernetes pod container locally or on a remote SSH host.
+  - Browse pod file structures directly and perform standard file edits and transfers.
 
 ### Native Clipboard & File Manipulations:
 - **New File / New Folder**: Create blank files or directories directly in the active explorer directory.
@@ -58,7 +63,10 @@ vscode-save-commands/
     │   └── drivers/                       <-- Virtual filesystem drivers
     │       ├── fsDriver.ts                <-- FSDriver interface
     │       ├── localDriver.ts             <-- Local OS driver implementation
-    │       └── sftpDriver.ts              <-- Stateless remote SFTP driver implementation
+    │       ├── sftpDriver.ts              <-- Stateless remote SFTP driver implementation
+    │       ├── dockerDriver.ts            <-- [NEW] Docker container filesystem driver
+    │       ├── k8sDriver.ts               <-- [NEW] Kubernetes pod filesystem driver
+    │       └── driverUtils.ts             <-- [NEW] Command execution stream helpers
     └── functions/                         <-- Core command executions
         ├── index.ts                       <-- [MODIFIED] Module exports aggregation
         ├── sshConnect.ts                  <-- [MODIFIED] Links spawned SSH terminals to sessions
@@ -80,7 +88,9 @@ vscode-save-commands/
             ├── remoteCopyPath.ts
             ├── remoteCopyRelativePath.ts
             ├── remoteDownload.ts
-            └── remoteUpload.ts
+            ├── remoteUpload.ts            <-- Parametrized file/folder upload handler
+            ├── attachDocker.ts            <-- [NEW] Lists and attaches to Docker containers
+            └── attachK8s.ts               <-- [NEW] Lists and attaches to Kubernetes Pods
 ```
 
 ---

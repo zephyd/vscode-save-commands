@@ -343,6 +343,18 @@
         "title": "Upload Folder...",
         "category": "Save Commands Enhanced",
         "icon": "$(cloud-upload)"
+      },
+      {
+        "command": "save-commands.attachDocker",
+        "title": "Attach Docker Container...",
+        "category": "Save Commands Enhanced",
+        "icon": "$(symbol-class)"
+      },
+      {
+        "command": "save-commands.attachK8s",
+        "title": "Attach Kubernetes Pod...",
+        "category": "Save Commands Enhanced",
+        "icon": "$(symbol-interface)"
       }
     ],
     "viewsContainers": {
@@ -539,6 +551,14 @@
         {
           "command": "save-commands.browseRemoteFiles",
           "group": "inline",
+          "when": "view == save-commands-view && viewItem == sshConnection"
+        },
+        {
+          "command": "save-commands.attachDocker",
+          "when": "view == save-commands-view && viewItem == sshConnection"
+        },
+        {
+          "command": "save-commands.attachK8s",
           "when": "view == save-commands-view && viewItem == sshConnection"
         },
         {
