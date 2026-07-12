@@ -21,6 +21,7 @@ import remoteNewFileFn from "./remote/remoteNewFile";
 import remoteNewFolderFn from "./remote/remoteNewFolder";
 import remotePasteFn from "./remote/remotePaste";
 import remoteRenameFn from "./remote/remoteRename";
+import remoteUploadFn from "./remote/remoteUpload";
 import sshConnectFn from "./remote/sshConnect";
 import sshConnectInActiveTerminalFn from "./remote/sshConnectInActiveTerminal";
 import syncExplorerToTerminalFn from "./remote/syncExplorerToTerminal";
@@ -62,4 +63,5 @@ export {
 	remoteCutFn,
 	remotePasteFn,
 	remoteDownloadFn,
+	remoteUploadFn,
 };

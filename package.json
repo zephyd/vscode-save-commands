@@ -271,6 +271,78 @@
         "title": "Go Up",
         "category": "Save Commands Enhanced",
         "icon": "$(arrow-up)"
+      },
+      {
+        "command": "save-commands.remoteNewFile",
+        "title": "New File",
+        "category": "Save Commands Enhanced",
+        "icon": "$(new-file)"
+      },
+      {
+        "command": "save-commands.remoteNewFolder",
+        "title": "New Folder",
+        "category": "Save Commands Enhanced",
+        "icon": "$(new-folder)"
+      },
+      {
+        "command": "save-commands.remoteRename",
+        "title": "Rename",
+        "category": "Save Commands Enhanced",
+        "icon": "$(edit)"
+      },
+      {
+        "command": "save-commands.remoteDelete",
+        "title": "Delete",
+        "category": "Save Commands Enhanced",
+        "icon": "$(trash)"
+      },
+      {
+        "command": "save-commands.remoteCopyPath",
+        "title": "Copy Path",
+        "category": "Save Commands Enhanced",
+        "icon": "$(copy)"
+      },
+      {
+        "command": "save-commands.remoteCopyRelativePath",
+        "title": "Copy Relative Path",
+        "category": "Save Commands Enhanced",
+        "icon": "$(copy)"
+      },
+      {
+        "command": "save-commands.remoteCopy",
+        "title": "Copy",
+        "category": "Save Commands Enhanced",
+        "icon": "$(files)"
+      },
+      {
+        "command": "save-commands.remoteCut",
+        "title": "Cut",
+        "category": "Save Commands Enhanced",
+        "icon": "$(scissors)"
+      },
+      {
+        "command": "save-commands.remotePaste",
+        "title": "Paste",
+        "category": "Save Commands Enhanced",
+        "icon": "$(files)"
+      },
+      {
+        "command": "save-commands.remoteDownload",
+        "title": "Download",
+        "category": "Save Commands Enhanced",
+        "icon": "$(cloud-download)"
+      },
+      {
+        "command": "save-commands.remoteUploadFiles",
+        "title": "Upload Files...",
+        "category": "Save Commands Enhanced",
+        "icon": "$(cloud-upload)"
+      },
+      {
+        "command": "save-commands.remoteUploadFolder",
+        "title": "Upload Folder...",
+        "category": "Save Commands Enhanced",
+        "icon": "$(cloud-upload)"
       }
     ],
     "viewsContainers": {
@@ -473,6 +545,66 @@
           "command": "save-commands.openTerminalAtRemoteDir",
           "group": "inline",
           "when": "view == save-commands-remote-view && viewItem == directory"
+        },
+        {
+          "command": "save-commands.remoteNewFile",
+          "group": "remoteFileAction@1",
+          "when": "view == save-commands-remote-view"
+        },
+        {
+          "command": "save-commands.remoteNewFolder",
+          "group": "remoteFileAction@2",
+          "when": "view == save-commands-remote-view"
+        },
+        {
+          "command": "save-commands.remoteRename",
+          "group": "remoteFileAction@3",
+          "when": "view == save-commands-remote-view"
+        },
+        {
+          "command": "save-commands.remoteDelete",
+          "group": "remoteFileAction@4",
+          "when": "view == save-commands-remote-view"
+        },
+        {
+          "command": "save-commands.remoteCopy",
+          "group": "remoteClipboard@1",
+          "when": "view == save-commands-remote-view"
+        },
+        {
+          "command": "save-commands.remoteCut",
+          "group": "remoteClipboard@2",
+          "when": "view == save-commands-remote-view"
+        },
+        {
+          "command": "save-commands.remotePaste",
+          "group": "remoteClipboard@3",
+          "when": "view == save-commands-remote-view"
+        },
+        {
+          "command": "save-commands.remoteCopyPath",
+          "group": "remoteClipboard@4",
+          "when": "view == save-commands-remote-view"
+        },
+        {
+          "command": "save-commands.remoteCopyRelativePath",
+          "group": "remoteClipboard@5",
+          "when": "view == save-commands-remote-view"
+        },
+        {
+          "command": "save-commands.remoteDownload",
+          "group": "remoteClipboard@6",
+          "when": "view == save-commands-remote-view"
+        },
+        {
+          "command": "save-commands.remoteUploadFiles",
+          "group": "remoteClipboard@7",
+          "when": "view == save-commands-remote-view"
+        },
+        {
+          "command": "save-commands.remoteUploadFolder",
+          "group": "remoteClipboard@8",
+          "when": "view == save-commands-remote-view"
         }
       ],
       "view/title": [
@@ -494,6 +626,16 @@
         {
           "command": "save-commands.syncExplorerToTerminal",
           "group": "navigation@4",
+          "when": "view == save-commands-remote-view"
+        },
+        {
+          "command": "save-commands.remoteNewFile",
+          "group": "navigation@5",
+          "when": "view == save-commands-remote-view"
+        },
+        {
+          "command": "save-commands.remoteNewFolder",
+          "group": "navigation@6",
           "when": "view == save-commands-remote-view"
         }
       ]

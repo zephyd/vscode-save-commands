@@ -5,6 +5,7 @@ import "reflect-metadata";
 import * as fs from "node:fs";
 import DragAndDropController from "./DragAndDropController";
 import FormViewProvider from "./FormViewProvider";
+import { RemoteDragAndDropController } from "./explorer/remoteDragAndDropController";
 import { remoteExplorerProvider } from "./explorer/remoteExplorerProvider";
 import { remoteFileSystemProvider } from "./explorer/remoteFileSystemProvider";
 import { sessionManager } from "./explorer/session";
@@ -33,6 +34,7 @@ import {
 	remoteNewFolderFn,
 	remotePasteFn,
 	remoteRenameFn,
+	remoteUploadFn,
 	resetFn,
 	runCommandFn,
 	runCommandInActiveTerminalFn,
@@ -343,6 +345,7 @@ export function activate(context: vscode.ExtensionContext) {
 		"save-commands-remote-view",
 		{
 			treeDataProvider: remoteExplorerProvider,
+			dragAndDropController: new RemoteDragAndDropController(),
 		},
 	);
 	remoteExplorerTreeView.onDidChangeSelection((e) => {
@@ -435,6 +438,14 @@ export function activate(context: vscode.ExtensionContext) {
 		vscode.commands.registerCommand(
 			"save-commands.remoteDownload",
 			remoteDownloadFn(context),
+		),
+		vscode.commands.registerCommand(
+			"save-commands.remoteUploadFiles",
+			remoteUploadFn(context, "files"),
+		),
+		vscode.commands.registerCommand(
+			"save-commands.remoteUploadFolder",
+			remoteUploadFn(context, "folder"),
 		),
 	);
 }
