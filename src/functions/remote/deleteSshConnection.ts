@@ -1,9 +1,9 @@
 import * as vscode from "vscode";
-import type TreeItem from "../TreeItem";
-import ReadableError from "../models/error";
-import { ExecCommands } from "../models/exec_commands";
-import SshConnection from "../models/ssh_connection";
-import { confirmationDialog } from "../utils";
+import type TreeItem from "../../TreeItem";
+import ReadableError from "../../models/error";
+import { ExecCommands } from "../../models/exec_commands";
+import SshConnection from "../../models/ssh_connection";
+import { confirmationDialog } from "../../utils";
 
 export default function (context: vscode.ExtensionContext) {
 	return async (item: TreeItem) => {

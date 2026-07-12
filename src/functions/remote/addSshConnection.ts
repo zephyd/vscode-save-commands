@@ -1,8 +1,8 @@
 import * as vscode from "vscode";
-import type FormViewProvider from "../FormViewProvider";
-import type TreeItem from "../TreeItem";
-import ReadableError from "../models/error";
-import { StateType } from "../models/etters";
+import type FormViewProvider from "../../FormViewProvider";
+import type TreeItem from "../../TreeItem";
+import ReadableError from "../../models/error";
+import { StateType } from "../../models/etters";
 
 export default function (
 	context: vscode.ExtensionContext,

@@ -1,7 +1,7 @@
 import * as vscode from "vscode";
-import type { FileNode } from "../explorer/remoteExplorerProvider";
-import { type Session, sessionManager } from "../explorer/session";
-import { generateString } from "../utils";
+import type { FileNode } from "../../explorer/remoteExplorerProvider";
+import { type Session, sessionManager } from "../../explorer/session";
+import { generateString } from "../../utils";
 
 export default function (context: vscode.ExtensionContext) {
 	return async (node?: FileNode) => {
@@ -10,7 +10,6 @@ export default function (context: vscode.ExtensionContext) {
 
 		if (node) {
 			session = sessionManager.getSession(node.uri.authority);
-			// If it is a directory, use its path. If it is a file, use its parent folder path.
 			if (node.fileType === vscode.FileType.Directory) {
 				targetPath = node.uri.path;
 			} else {

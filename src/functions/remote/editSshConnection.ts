@@ -1,8 +1,8 @@
 import type * as vscode from "vscode";
-import type FormViewProvider from "../FormViewProvider";
-import type TreeItem from "../TreeItem";
-import ReadableError from "../models/error";
-import SshConnection from "../models/ssh_connection";
+import type FormViewProvider from "../../FormViewProvider";
+import type TreeItem from "../../TreeItem";
+import ReadableError from "../../models/error";
+import SshConnection from "../../models/ssh_connection";
 
 export default function (
 	context: vscode.ExtensionContext,

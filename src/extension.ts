@@ -7,8 +7,8 @@ import DragAndDropController from "./DragAndDropController";
 import FormViewProvider from "./FormViewProvider";
 import { remoteExplorerProvider } from "./explorer/remoteExplorerProvider";
 import { remoteFileSystemProvider } from "./explorer/remoteFileSystemProvider";
-import { sshPool } from "./explorer/sshPool";
 import { sessionManager } from "./explorer/session";
+import { sshPool } from "./explorer/sshPool";
 import {
 	addCommandFn,
 	addFolderFn,
@@ -23,6 +23,16 @@ import {
 	editFolderFn,
 	editSshConnectionFn,
 	openTerminalAtRemoteDirFn,
+	remoteCopyFn,
+	remoteCopyPathFn,
+	remoteCopyRelativePathFn,
+	remoteCutFn,
+	remoteDeleteFn,
+	remoteDownloadFn,
+	remoteNewFileFn,
+	remoteNewFolderFn,
+	remotePasteFn,
+	remoteRenameFn,
 	resetFn,
 	runCommandFn,
 	runCommandInActiveTerminalFn,
@@ -380,12 +390,52 @@ export function activate(context: vscode.ExtensionContext) {
 				if (lastSlash > 0) {
 					parent = normalized.substring(0, lastSlash);
 				} else if (normalized.includes(":") && !normalized.endsWith("/")) {
-					parent = normalized.substring(0, normalized.indexOf(":") + 1) + "/";
+					parent = `${normalized.substring(0, normalized.indexOf(":") + 1)}/`;
 				}
 				session.cwd = parent;
 				remoteExplorerProvider.refresh();
 			}
 		}),
+		vscode.commands.registerCommand(
+			"save-commands.remoteNewFile",
+			remoteNewFileFn(context),
+		),
+		vscode.commands.registerCommand(
+			"save-commands.remoteNewFolder",
+			remoteNewFolderFn(context),
+		),
+		vscode.commands.registerCommand(
+			"save-commands.remoteRename",
+			remoteRenameFn(context),
+		),
+		vscode.commands.registerCommand(
+			"save-commands.remoteDelete",
+			remoteDeleteFn(context),
+		),
+		vscode.commands.registerCommand(
+			"save-commands.remoteCopyPath",
+			remoteCopyPathFn(context),
+		),
+		vscode.commands.registerCommand(
+			"save-commands.remoteCopyRelativePath",
+			remoteCopyRelativePathFn(context),
+		),
+		vscode.commands.registerCommand(
+			"save-commands.remoteCopy",
+			remoteCopyFn(context),
+		),
+		vscode.commands.registerCommand(
+			"save-commands.remoteCut",
+			remoteCutFn(context),
+		),
+		vscode.commands.registerCommand(
+			"save-commands.remotePaste",
+			remotePasteFn(context),
+		),
+		vscode.commands.registerCommand(
+			"save-commands.remoteDownload",
+			remoteDownloadFn(context),
+		),
 	);
 }
 

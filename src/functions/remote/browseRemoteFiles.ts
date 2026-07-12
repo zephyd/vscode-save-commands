@@ -1,9 +1,9 @@
 import * as vscode from "vscode";
-import type TreeItem from "../TreeItem";
-import { remoteExplorerProvider } from "../explorer/remoteExplorerProvider";
-import { sessionManager } from "../explorer/session";
-import ReadableError from "../models/error";
-import SshConnection from "../models/ssh_connection";
+import type TreeItem from "../../TreeItem";
+import { remoteExplorerProvider } from "../../explorer/remoteExplorerProvider";
+import { sessionManager } from "../../explorer/session";
+import ReadableError from "../../models/error";
+import SshConnection from "../../models/ssh_connection";
 
 export default function (context: vscode.ExtensionContext) {
 	return async (item: TreeItem) => {

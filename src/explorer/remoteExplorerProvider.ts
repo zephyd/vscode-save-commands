@@ -48,6 +48,23 @@ export class RemoteExplorerProvider
 		return this.selectedNode;
 	}
 
+	private clipboardUri?: vscode.Uri;
+	private clipboardIsCut = false;
+
+	setClipboard(uri: vscode.Uri, isCut = false): void {
+		this.clipboardUri = uri;
+		this.clipboardIsCut = isCut;
+	}
+
+	getClipboard(): { uri: vscode.Uri | undefined; isCut: boolean } {
+		return { uri: this.clipboardUri, isCut: this.clipboardIsCut };
+	}
+
+	clearClipboard(): void {
+		this.clipboardUri = undefined;
+		this.clipboardIsCut = false;
+	}
+
 	refresh(): void {
 		this._onDidChangeTreeData.fire(undefined);
 	}

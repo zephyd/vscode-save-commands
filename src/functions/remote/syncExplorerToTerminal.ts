@@ -1,6 +1,6 @@
 import * as vscode from "vscode";
-import { remoteExplorerProvider } from "../explorer/remoteExplorerProvider";
-import { sessionManager } from "../explorer/session";
+import { remoteExplorerProvider } from "../../explorer/remoteExplorerProvider";
+import { sessionManager } from "../../explorer/session";
 
 export default function (context: vscode.ExtensionContext) {
 	return async () => {
@@ -8,7 +8,6 @@ export default function (context: vscode.ExtensionContext) {
 		const activeSession = sessionManager.getActiveSession();
 
 		let detectedCwd: string | undefined;
-		// Check for VS Code native Shell Integration CWD detection (only valid for local sessions)
 		if (
 			activeSession.type === "local" &&
 			activeTerminal &&
@@ -33,7 +32,6 @@ export default function (context: vscode.ExtensionContext) {
 			}
 		}
 
-		// Prompt user for confirmation/input
 		const input = await vscode.window.showInputBox({
 			prompt: "Enter working directory of terminal to sync Explorer to",
 			value: selectedPath || detectedCwd || activeSession.cwd,
