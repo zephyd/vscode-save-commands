@@ -18,6 +18,7 @@ export default class FormViewProvider implements vscode.WebviewViewProvider {
 			username?: string;
 			password?: string;
 			sudoPassword?: string;
+			rootPassword?: string;
 		};
 	};
 
@@ -91,6 +92,7 @@ export default class FormViewProvider implements vscode.WebviewViewProvider {
 			username?: string;
 			password?: string;
 			sudoPassword?: string;
+			rootPassword?: string;
 		},
 	) {
 		await vscode.commands.executeCommand(
@@ -114,6 +116,7 @@ export default class FormViewProvider implements vscode.WebviewViewProvider {
 				username: initialData?.username,
 				password: initialData?.password,
 				sudoPassword: initialData?.sudoPassword,
+				rootPassword: initialData?.rootPassword,
 			});
 		} else {
 			this._pendingContext = { stateType, folderId, mode, initialData };
@@ -278,6 +281,10 @@ export default class FormViewProvider implements vscode.WebviewViewProvider {
 						<label for="sudoPassword" style="width: 60px; min-width: 60px;">Sudo Pwd:</label>
 						<input type="password" id="sudoPassword" placeholder="Sudo/Root Password (Optional)">
 					</div>
+					<div class="input-row ssh-field" id="rootPassword-row" style="display: none;">
+						<label for="rootPassword" style="width: 60px; min-width: 60px;">Root Pwd:</label>
+						<input type="password" id="rootPassword" placeholder="K8s Root/Su Password (Optional)">
+					</div>
 					<div class="footer">
 						<span id="scope-info">Target: Global</span>
 						<div style="display: flex; align-items: center;">
@@ -345,6 +352,7 @@ export default class FormViewProvider implements vscode.WebviewViewProvider {
 								document.getElementById('username').value = message.username || '';
 								document.getElementById('password').value = message.password || '';
 								document.getElementById('sudoPassword').value = message.sudoPassword || '';
+								document.getElementById('rootPassword').value = message.rootPassword || '';
 								document.getElementById('name').placeholder = 'My Server';
 							} else {
 								container.classList.remove('mode-ssh');
@@ -377,10 +385,11 @@ export default class FormViewProvider implements vscode.WebviewViewProvider {
 							const username = document.getElementById('username').value;
 							const password = document.getElementById('password').value;
 							const sudoPassword = document.getElementById('sudoPassword').value;
+							const rootPassword = document.getElementById('rootPassword').value;
 							if (name && host && username) {
 								vscode.postMessage({
 									type: 'saveSsh',
-									value: { name, host, port, username, password, sudoPassword, ...currentContext }
+									value: { name, host, port, username, password, sudoPassword, rootPassword, ...currentContext }
 								});
 								clearForm();
 							}
@@ -405,6 +414,7 @@ export default class FormViewProvider implements vscode.WebviewViewProvider {
 						document.getElementById('username').value = '';
 						document.getElementById('password').value = '';
 						document.getElementById('sudoPassword').value = '';
+						document.getElementById('rootPassword').value = '';
 						currentContext.commandId = null; 
 					};
 
@@ -442,7 +452,7 @@ export default class FormViewProvider implements vscode.WebviewViewProvider {
 						if (e.key === 'Enter') {
 							if (currentContext.mode === 'ssh') {
 								if (!e.ctrlKey && !e.metaKey) {
-									const fieldOrder = ['name', 'host', 'port', 'username', 'password', 'sudoPassword'];
+									const fieldOrder = ['name', 'host', 'port', 'username', 'password', 'sudoPassword', 'rootPassword'];
 									const currentIdx = fieldOrder.indexOf(e.target.id);
 									if (currentIdx !== -1) {
 										e.preventDefault();

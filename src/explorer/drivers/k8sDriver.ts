@@ -28,6 +28,7 @@ export class K8sDriver implements FSDriver {
 				cmd,
 				stdinData,
 				this.sshConnection.sudoPassword,
+				this.sshConnection.rootPassword,
 			);
 		}
 		return execLocal(cmd, stdinData);

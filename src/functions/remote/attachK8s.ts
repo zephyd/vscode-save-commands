@@ -22,7 +22,13 @@ export default function (context: vscode.ExtensionContext) {
 			const cmd = `kubectl get pods -A -o jsonpath='{range .items[*]}{.metadata.namespace}{"\\t"}{.metadata.name}{"\\t"}{range .spec.containers[*]}{.name}{","}{end}{"\\n"}{end}'`;
 			if (conn) {
 				const session = await sshPool.getSSH(conn);
-				rawOutput = await execSsh(session.client, cmd);
+				rawOutput = await execSsh(
+					session.client,
+					cmd,
+					undefined,
+					conn.sudoPassword,
+					conn.rootPassword,
+				);
 			} else {
 				rawOutput = await execLocal(cmd);
 			}

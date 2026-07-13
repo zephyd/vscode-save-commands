@@ -199,6 +199,7 @@ export function activate(context: vscode.ExtensionContext) {
 			username: string;
 			password?: string;
 			sudoPassword?: string;
+			rootPassword?: string;
 			stateType: StateType;
 			commandId?: string | null;
 		}) => {
@@ -210,6 +211,7 @@ export function activate(context: vscode.ExtensionContext) {
 					username,
 					password,
 					sudoPassword,
+					rootPassword,
 					stateType,
 					commandId,
 				} = data;
@@ -229,6 +231,7 @@ export function activate(context: vscode.ExtensionContext) {
 						currentConnections[idx].username = username.trim();
 						currentConnections[idx].password = (password || "").trim();
 						currentConnections[idx].sudoPassword = (sudoPassword || "").trim();
+						currentConnections[idx].rootPassword = (rootPassword || "").trim();
 						vscode.window.showInformationMessage(
 							`Updated SSH Connection: ${name}`,
 						);
@@ -242,6 +245,7 @@ export function activate(context: vscode.ExtensionContext) {
 						username: username.trim(),
 						password: (password || "").trim(),
 						sudoPassword: (sudoPassword || "").trim(),
+						rootPassword: (rootPassword || "").trim(),
 					});
 					currentConnections.push(newConn);
 					vscode.window.showInformationMessage(`Added SSH Connection: ${name}`);
@@ -493,44 +497,29 @@ export function activate(context: vscode.ExtensionContext) {
 				);
 			},
 		),
-		vscode.commands.registerCommand(
-			"save-commands.showSshGroups",
-			() => {
-				sshTreeView.toggleSshGroups();
-			},
-		),
-		vscode.commands.registerCommand(
-			"save-commands.hideSshGroups",
-			() => {
-				sshTreeView.toggleSshGroups();
-			},
-		),
+		vscode.commands.registerCommand("save-commands.showSshGroups", () => {
+			sshTreeView.toggleSshGroups();
+		}),
+		vscode.commands.registerCommand("save-commands.hideSshGroups", () => {
+			sshTreeView.toggleSshGroups();
+		}),
 		vscode.commands.registerCommand(
 			"save-commands.addGlobalSshConnection",
 			() => {
 				formViewProvider.prepareForm(StateType.global, null, "ssh");
 			},
 		),
-		vscode.commands.registerCommand(
-			"save-commands.addGlobalCommand",
-			() => {
-				formViewProvider.prepareForm(StateType.global, null, "command", {
-					placeholderTypeId: getActivePlaceholderType().id,
-				});
-			},
-		),
-		vscode.commands.registerCommand(
-			"save-commands.showCommandsGroups",
-			() => {
-				treeView.toggleCommandsGroups();
-			},
-		),
-		vscode.commands.registerCommand(
-			"save-commands.hideCommandsGroups",
-			() => {
-				treeView.toggleCommandsGroups();
-			},
-		),
+		vscode.commands.registerCommand("save-commands.addGlobalCommand", () => {
+			formViewProvider.prepareForm(StateType.global, null, "command", {
+				placeholderTypeId: getActivePlaceholderType().id,
+			});
+		}),
+		vscode.commands.registerCommand("save-commands.showCommandsGroups", () => {
+			treeView.toggleCommandsGroups();
+		}),
+		vscode.commands.registerCommand("save-commands.hideCommandsGroups", () => {
+			treeView.toggleCommandsGroups();
+		}),
 		vscode.commands.registerCommand("save-commands.goUpRemoteExplorer", () => {
 			const session = sessionManager.getActiveSession();
 			if (session.cwd && session.cwd !== "/") {

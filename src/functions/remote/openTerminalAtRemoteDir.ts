@@ -126,16 +126,30 @@ export default function (context: vscode.ExtensionContext, reuse = false) {
 				terminal.show();
 				terminal.sendText(sshCommand);
 
-				const delay = conn.password ? 2000 : 1500;
+				const delay = conn.password ? 2500 : 2000;
 				if (conn.password) {
 					setTimeout(() => {
 						terminal.sendText(conn.password);
 					}, 1500);
 				}
 
-				setTimeout(() => {
-					terminal.sendText(targetCmd);
-				}, delay + 500);
+				if (conn.rootPassword) {
+					setTimeout(() => {
+						terminal.sendText("su");
+					}, delay);
+
+					setTimeout(() => {
+						terminal.sendText(conn.rootPassword);
+					}, delay + 1500);
+
+					setTimeout(() => {
+						terminal.sendText(targetCmd);
+					}, delay + 2500);
+				} else {
+					setTimeout(() => {
+						terminal.sendText(targetCmd);
+					}, delay + 500);
+				}
 			} else {
 				const terminal = vscode.window.createTerminal({
 					name: `K8s: ${session.podName}`,

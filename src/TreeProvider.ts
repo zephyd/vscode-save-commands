@@ -33,14 +33,20 @@ class TreeDataProvider implements vscode.TreeDataProvider<TreeItem> {
 		this.mode = mode;
 		this.data = [];
 		if (this.mode === "ssh") {
-			this.showSshGroups = this.context.globalState.get<boolean>("showSshGroups", false);
+			this.showSshGroups = this.context.globalState.get<boolean>(
+				"showSshGroups",
+				false,
+			);
 			vscode.commands.executeCommand(
 				"setContext",
 				"save-commands.show-ssh-groups",
 				this.showSshGroups,
 			);
 		} else {
-			this.showCommandsGroups = this.context.globalState.get<boolean>("showCommandsGroups", false);
+			this.showCommandsGroups = this.context.globalState.get<boolean>(
+				"showCommandsGroups",
+				false,
+			);
 			vscode.commands.executeCommand(
 				"setContext",
 				"save-commands.show-commands-groups",
@@ -71,7 +77,10 @@ class TreeDataProvider implements vscode.TreeDataProvider<TreeItem> {
 
 	toggleCommandsGroups(): void {
 		this.showCommandsGroups = !this.showCommandsGroups;
-		this.context.globalState.update("showCommandsGroups", this.showCommandsGroups);
+		this.context.globalState.update(
+			"showCommandsGroups",
+			this.showCommandsGroups,
+		);
 		vscode.commands.executeCommand(
 			"setContext",
 			"save-commands.show-commands-groups",
@@ -275,22 +284,28 @@ class TreeDataProvider implements vscode.TreeDataProvider<TreeItem> {
 			);
 
 			if (this.showSshGroups) {
-				const finalGlobalItems = globalSshItems.length !== 0 ? globalSshItems : [
-					new TreeItem({
-						id: null,
-						label: "No SSH Connections Found",
-						contextValue: ContextValue.none,
-						stateType: StateType.global,
-					}),
-				];
-				const finalWorkspaceItems = workspaceSshItems.length !== 0 ? workspaceSshItems : [
-					new TreeItem({
-						id: null,
-						label: "No SSH Connections Found",
-						contextValue: ContextValue.none,
-						stateType: StateType.workspace,
-					}),
-				];
+				const finalGlobalItems =
+					globalSshItems.length !== 0
+						? globalSshItems
+						: [
+								new TreeItem({
+									id: null,
+									label: "No SSH Connections Found",
+									contextValue: ContextValue.none,
+									stateType: StateType.global,
+								}),
+							];
+				const finalWorkspaceItems =
+					workspaceSshItems.length !== 0
+						? workspaceSshItems
+						: [
+								new TreeItem({
+									id: null,
+									label: "No SSH Connections Found",
+									contextValue: ContextValue.none,
+									stateType: StateType.workspace,
+								}),
+							];
 
 				this.data = [
 					new TreeItem({

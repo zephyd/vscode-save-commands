@@ -20,7 +20,9 @@ export default function (context: vscode.ExtensionContext) {
 		} else {
 			const activeEditor = vscode.window.activeTextEditor;
 			if (!activeEditor) {
-				vscode.window.showWarningMessage("No active file in editor or selected item to focus on.");
+				vscode.window.showWarningMessage(
+					"No active file in editor or selected item to focus on.",
+				);
 				return;
 			}
 
@@ -50,7 +52,9 @@ export default function (context: vscode.ExtensionContext) {
 			remoteExplorerProvider.refresh();
 			vscode.window.showInformationMessage(`Explorer focused to: ${dirPath}`);
 		} else {
-			vscode.window.showErrorMessage(`No session found matching authority/ID: ${targetSessionId}`);
+			vscode.window.showErrorMessage(
+				`No session found matching authority/ID: ${targetSessionId}`,
+			);
 		}
 	};
 }
