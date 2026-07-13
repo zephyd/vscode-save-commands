@@ -252,13 +252,31 @@
         "command": "save-commands.openTerminalAtRemoteDir",
         "title": "Open Terminal Here",
         "category": "Save Commands Enhanced",
-        "icon": "$(terminal)"
+        "icon": {
+          "light": "resources/light/terminal.svg",
+          "dark": "resources/dark/terminal.svg"
+        }
+      },
+      {
+        "command": "save-commands.openTerminalAtRemoteDirReuse",
+        "title": "Open Terminal Here (Reuse)",
+        "category": "Save Commands Enhanced",
+        "icon": {
+          "light": "resources/light/terminal_active.svg",
+          "dark": "resources/dark/terminal_active.svg"
+        }
       },
       {
         "command": "save-commands.syncExplorerToTerminal",
         "title": "Sync Explorer to Terminal",
         "category": "Save Commands Enhanced",
         "icon": "$(sync)"
+      },
+      {
+        "command": "save-commands.autoFocusExplorer",
+        "title": "Focus Explorer Here",
+        "category": "Save Commands Enhanced",
+        "icon": "$(target)"
       },
       {
         "command": "save-commands.refreshRemoteExplorer",
@@ -475,6 +493,11 @@
           "when": "view == save-commands-remote-view"
         },
         {
+          "command": "save-commands.openTerminalAtRemoteDirReuse",
+          "group": "navigation@3.5",
+          "when": "view == save-commands-remote-view"
+        },
+        {
           "command": "save-commands.syncExplorerToTerminal",
           "group": "navigation@4",
           "when": "view == save-commands-remote-view"
@@ -609,8 +632,13 @@
           "when": "view == save-commands-ssh-view && viewItem == sshConnection"
         },
         {
-          "command": "save-commands.openTerminalAtRemoteDir",
-          "group": "inline",
+          "command": "save-commands.autoFocusExplorer",
+          "group": "inline@1",
+          "when": "view == save-commands-remote-view && viewItem == directory"
+        },
+        {
+          "command": "save-commands.openTerminalAtRemoteDirReuse",
+          "group": "inline@2",
           "when": "view == save-commands-remote-view && viewItem == directory"
         },
         {
