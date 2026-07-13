@@ -116,7 +116,7 @@ export default function (context: vscode.ExtensionContext, reuse = false) {
 			const containerArg = session.containerName
 				? `-c ${session.containerName}`
 				: "";
-			const targetCmd = `kubectl exec -it ${session.podName} -n ${session.namespace} ${containerArg} -- sh -c "cd '${targetPath}' && exec sh"`;
+			const targetCmd = `kubectl exec -it ${session.podName} -n ${session.namespace} ${containerArg} -- sh -c "cd '${targetPath}' && (command -v bash >/dev/null 2>&1 && exec bash || exec sh)"`;
 			if (session.sshConnection) {
 				const conn = session.sshConnection;
 				const sshCommand = `ssh -o StrictHostKeyChecking=no ${conn.username}@${conn.host} -p ${conn.port}`;

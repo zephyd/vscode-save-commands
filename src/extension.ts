@@ -105,6 +105,7 @@ export function activate(context: vscode.ExtensionContext) {
 		[ExecCommands.addSshConnection]: addSshConnectionFn(
 			context,
 			formViewProvider,
+			sshTreeView,
 		),
 		[ExecCommands.deleteSshConnection]: deleteSshConnectionFn(context),
 		[ExecCommands.openSshConfigFile]: async () => {
@@ -490,6 +491,44 @@ export function activate(context: vscode.ExtensionContext) {
 				vscode.window.showInformationMessage(
 					"Disconnected from remote connection.",
 				);
+			},
+		),
+		vscode.commands.registerCommand(
+			"save-commands.showSshGroups",
+			() => {
+				sshTreeView.toggleSshGroups();
+			},
+		),
+		vscode.commands.registerCommand(
+			"save-commands.hideSshGroups",
+			() => {
+				sshTreeView.toggleSshGroups();
+			},
+		),
+		vscode.commands.registerCommand(
+			"save-commands.addGlobalSshConnection",
+			() => {
+				formViewProvider.prepareForm(StateType.global, null, "ssh");
+			},
+		),
+		vscode.commands.registerCommand(
+			"save-commands.addGlobalCommand",
+			() => {
+				formViewProvider.prepareForm(StateType.global, null, "command", {
+					placeholderTypeId: getActivePlaceholderType().id,
+				});
+			},
+		),
+		vscode.commands.registerCommand(
+			"save-commands.showCommandsGroups",
+			() => {
+				treeView.toggleCommandsGroups();
+			},
+		),
+		vscode.commands.registerCommand(
+			"save-commands.hideCommandsGroups",
+			() => {
+				treeView.toggleCommandsGroups();
 			},
 		),
 		vscode.commands.registerCommand("save-commands.goUpRemoteExplorer", () => {

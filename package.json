@@ -213,6 +213,48 @@
         }
       },
       {
+        "command": "save-commands.showSshGroups",
+        "title": "Show Groups",
+        "category": "Save Commands Enhanced",
+        "icon": "$(folder)"
+      },
+      {
+        "command": "save-commands.hideSshGroups",
+        "title": "Hide Groups",
+        "category": "Save Commands Enhanced",
+        "icon": "$(list-unordered)"
+      },
+      {
+        "command": "save-commands.addGlobalSshConnection",
+        "title": "Add Global SSH Connection",
+        "category": "Save Commands Enhanced",
+        "icon": {
+          "light": "resources/light/add.svg",
+          "dark": "resources/dark/add.svg"
+        }
+      },
+      {
+        "command": "save-commands.addGlobalCommand",
+        "title": "Add Global Command",
+        "category": "Save Commands Enhanced",
+        "icon": {
+          "light": "resources/light/add.svg",
+          "dark": "resources/dark/add.svg"
+        }
+      },
+      {
+        "command": "save-commands.showCommandsGroups",
+        "title": "Show Groups",
+        "category": "Save Commands Enhanced",
+        "icon": "$(folder)"
+      },
+      {
+        "command": "save-commands.hideCommandsGroups",
+        "title": "Hide Groups",
+        "category": "Save Commands Enhanced",
+        "icon": "$(list-unordered)"
+      },
+      {
         "command": "save-commands.openSshConfigFile",
         "title": "Open Workspace SSH Config (JSON)",
         "category": "Save Commands Enhanced",
@@ -478,6 +520,36 @@
           "group": "navigation@1"
         },
         {
+          "command": "save-commands.addGlobalSshConnection",
+          "when": "view == save-commands-ssh-view",
+          "group": "navigation@0.8"
+        },
+        {
+          "command": "save-commands.addGlobalCommand",
+          "when": "view == save-commands-view",
+          "group": "navigation@0.8"
+        },
+        {
+          "command": "save-commands.showSshGroups",
+          "when": "view == save-commands-ssh-view && !save-commands.show-ssh-groups",
+          "group": "navigation@0.9"
+        },
+        {
+          "command": "save-commands.hideSshGroups",
+          "when": "view == save-commands-ssh-view && save-commands.show-ssh-groups",
+          "group": "navigation@0.9"
+        },
+        {
+          "command": "save-commands.showCommandsGroups",
+          "when": "view == save-commands-view && !save-commands.show-commands-groups",
+          "group": "navigation@0.9"
+        },
+        {
+          "command": "save-commands.hideCommandsGroups",
+          "when": "view == save-commands-view && save-commands.show-commands-groups",
+          "group": "navigation@0.9"
+        },
+        {
           "command": "save-commands.goUpRemoteExplorer",
           "group": "navigation@1",
           "when": "view == save-commands-remote-view"
@@ -739,7 +811,7 @@
   },
   "repository": {
     "type": "git",
-    "url": "https://github.com/codectyl/vscode-save-commands"
+    "url": "https://github.com/zephyd/vscode-save-commands"
   },
   "license": "MIT",
   "publisher": "zephyd",
