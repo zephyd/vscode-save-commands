@@ -45,6 +45,7 @@ import {
 	sshConnectFn,
 	sshConnectInActiveTerminalFn,
 	syncExplorerToTerminalFn,
+	autoFocusExplorerFn,
 } from "./functions";
 import Command from "./models/command";
 import { StateType } from "./models/etters";
@@ -464,8 +465,16 @@ export function activate(context: vscode.ExtensionContext) {
 			openTerminalAtRemoteDirFn(context),
 		),
 		vscode.commands.registerCommand(
+			"save-commands.openTerminalAtRemoteDirReuse",
+			openTerminalAtRemoteDirFn(context, true),
+		),
+		vscode.commands.registerCommand(
 			"save-commands.syncExplorerToTerminal",
 			syncExplorerToTerminalFn(context),
+		),
+		vscode.commands.registerCommand(
+			"save-commands.autoFocusExplorer",
+			autoFocusExplorerFn(context),
 		),
 		vscode.commands.registerCommand(
 			"save-commands.refreshRemoteExplorer",

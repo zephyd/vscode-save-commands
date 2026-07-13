@@ -3,7 +3,7 @@ import type { FileNode } from "../../explorer/remoteExplorerProvider";
 import { type Session, sessionManager } from "../../explorer/session";
 import { generateString } from "../../utils";
 
-export default function (context: vscode.ExtensionContext) {
+export default function (context: vscode.ExtensionContext, reuse = false) {
 	return async (node?: FileNode) => {
 		let session: Session | undefined;
 		let targetPath = "";
@@ -25,6 +25,24 @@ export default function (context: vscode.ExtensionContext) {
 		if (!session) {
 			vscode.window.showErrorMessage("No active session to open terminal for.");
 			return;
+		}
+
+		if (reuse) {
+			const existingTerminal = vscode.window.terminals.find(
+				(t: vscode.Terminal & { _sessionId?: string }) =>
+					t._sessionId === session?.id,
+			);
+			if (existingTerminal) {
+				existingTerminal.show();
+				existingTerminal.sendText(`cd "${targetPath}"`);
+				if (process.platform === "win32" && session.type === "local") {
+					const match = targetPath.match(/^[a-zA-Z]:/);
+					if (match) {
+						existingTerminal.sendText(match[0]);
+					}
+				}
+				return;
+			}
 		}
 
 		if (session.type === "local") {

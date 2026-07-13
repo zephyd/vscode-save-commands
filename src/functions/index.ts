@@ -27,6 +27,7 @@ import remoteUploadFn from "./remote/remoteUpload";
 import sshConnectFn from "./remote/sshConnect";
 import sshConnectInActiveTerminalFn from "./remote/sshConnectInActiveTerminal";
 import syncExplorerToTerminalFn from "./remote/syncExplorerToTerminal";
+import autoFocusExplorerFn from "./remote/autoFocusExplorer";
 import resetFn from "./reset";
 import runCommandFn from "./runCommand";
 import runCommandInActiveTerminalFn from "./runCommandInActiveTerminal";
@@ -55,6 +56,7 @@ export {
 	browseRemoteFilesFn,
 	openTerminalAtRemoteDirFn,
 	syncExplorerToTerminalFn,
+	autoFocusExplorerFn,
 	remoteNewFileFn,
 	remoteNewFolderFn,
 	remoteRenameFn,
