@@ -170,6 +170,7 @@ class TreeDataProvider implements vscode.TreeDataProvider<TreeItem> {
 		const config = vscode.workspace.getConfiguration("save-commands");
 		const k8sNamespace = config.get<string>("k8s.namespaceFilter") || "None";
 		const k8sKeyword = config.get<string>("k8s.keywordFilter") || "None";
+		const k8sInitialDir = config.get<string>("k8s.initialDir") || "None";
 		const dockerArgs = config.get<string>("docker.filterArgs") || "None";
 		const dockerKeyword = config.get<string>("docker.keywordFilter") || "None";
 
@@ -205,6 +206,23 @@ class TreeDataProvider implements vscode.TreeDataProvider<TreeItem> {
 						"Kubernetes Pod Keyword",
 						k8sKeyword === "None" ? "" : k8sKeyword,
 						"e.g. nginx proxy (separated by space/comma)"
+					]
+				}
+			}),
+			new TreeItem({
+				id: "filter-k8s-initial-dir",
+				label: `K8s Initial Dir: ${k8sInitialDir}`,
+				tooltip: "Click to edit Kubernetes container initial directory",
+				contextValue: ContextValue.filterItem,
+				stateType: StateType.global,
+				command: {
+					command: "save-commands.editFilterItem",
+					title: "Edit K8s Initial Dir",
+					arguments: [
+						"k8s.initialDir",
+						"Kubernetes Initial Directory",
+						k8sInitialDir === "None" ? "" : k8sInitialDir,
+						"e.g. /app or /var/log"
 					]
 				}
 			}),

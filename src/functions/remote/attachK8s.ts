@@ -141,11 +141,14 @@ export default function (context: vscode.ExtensionContext) {
 			}
 		}
 
+		const initialDir = config.get<string>("k8s.initialDir") || "/";
+
 		const session = sessionManager.createSession("k8s", {
 			podName: podName,
 			namespace: namespace,
 			containerName,
 			sshConnection: conn,
+			cwd: initialDir.trim() || "/",
 		});
 
 		sessionManager.setExplicitSession(session);
