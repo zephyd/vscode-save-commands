@@ -37,24 +37,14 @@ export default function (context: vscode.ExtensionContext) {
 			);
 		}
 
-		const quickPickItems = [
-			{
-				label: "$(search) Change filters...",
-				description: `Current: Namespace="${namespaceFilter || "All"}", Keyword="${keywordFilter || "None"}"`,
-				detail: "Change the namespace and keyword filters used to list pods",
-				podName: "__change_filter__",
-				namespace: "",
-				containers: [] as string[],
-			},
-			{
-				label: "$(pencil) Enter pod details manually...",
-				description: "Skip list search and input namespace/pod name directly",
-				detail: "",
-				podName: "__manual__",
-				namespace: "",
-				containers: [] as string[],
-			},
-		];
+		const quickPickItems: {
+			label: string;
+			description: string;
+			detail: string;
+			podName: string;
+			namespace: string;
+			containers: string[];
+		}[] = [];
 
 		if (rawOutput) {
 			const lines = rawOutput
@@ -90,8 +80,10 @@ export default function (context: vscode.ExtensionContext) {
 			}
 		}
 
+		const nsLabel = namespaceFilter || "All";
+		const kwLabel = keywordFilter || "None";
 		const selectedPod = await vscode.window.showQuickPick(quickPickItems, {
-			placeHolder: "Select a Kubernetes pod to attach to",
+			placeHolder: `Select a pod  |  Namespace: ${nsLabel}  |  Keyword: ${kwLabel}`,
 		});
 
 		if (!selectedPod) return;
@@ -100,45 +92,16 @@ export default function (context: vscode.ExtensionContext) {
 		let podName = selectedPod.podName;
 		let containerName: string | undefined;
 
-		if (selectedPod.podName === "__change_filter__") {
-			await vscode.commands.executeCommand("save-commands.configureRemoteFilters");
-			return vscode.commands.executeCommand("save-commands.attachK8s", item);
-		}
-
-		if (selectedPod.podName === "__manual__") {
-			const manualNs = await vscode.window.showInputBox({
-				placeHolder: "Enter Kubernetes Namespace (e.g. default)",
-				prompt: "Type the namespace of the target pod",
-				value: "default",
-			});
-			if (!manualNs || !manualNs.trim()) return;
-			namespace = manualNs.trim();
-
-			const manualPod = await vscode.window.showInputBox({
-				placeHolder: "Enter Pod Name",
-				prompt: "Type the name of the target pod",
-			});
-			if (!manualPod || !manualPod.trim()) return;
-			podName = manualPod.trim();
-
-			const manualContainer = await vscode.window.showInputBox({
-				placeHolder: "Enter Container Name (Optional)",
-				prompt:
-					"Type the container name if the pod has multiple containers (leave empty for default)",
-			});
-			containerName = manualContainer?.trim() || undefined;
-		} else {
-			if (selectedPod.containers.length > 1) {
-				containerName = await vscode.window.showQuickPick(
-					selectedPod.containers,
-					{
-						placeHolder: "Select container in the pod",
-					},
-				);
-				if (!containerName) return;
-			} else if (selectedPod.containers.length === 1) {
-				containerName = selectedPod.containers[0];
-			}
+		if (selectedPod.containers.length > 1) {
+			containerName = await vscode.window.showQuickPick(
+				selectedPod.containers,
+				{
+					placeHolder: "Select container in the pod",
+				},
+			);
+			if (!containerName) return;
+		} else if (selectedPod.containers.length === 1) {
+			containerName = selectedPod.containers[0];
 		}
 
 		const initialDir = config.get<string>("k8s.initialDir") || "/";

@@ -49,20 +49,12 @@ export default function (context: vscode.ExtensionContext) {
 			);
 		}
 
-		const quickPickItems = [
-			{
-				label: "$(search) Change filters...",
-				description: `Current: Args="${filterArgs || "None"}", Keyword="${keywordFilter || "None"}"`,
-				detail: "Change the docker ps arguments and container keyword filters",
-				id: "__change_filter__",
-			},
-			{
-				label: "$(pencil) Enter container ID/Name manually...",
-				description: "Skip list search and input target name directly",
-				detail: "",
-				id: "__manual__",
-			},
-		];
+		const quickPickItems: {
+			label: string;
+			description: string;
+			detail: string;
+			id: string;
+		}[] = [];
 
 		if (rawOutput) {
 			const lines = rawOutput
@@ -97,8 +89,10 @@ export default function (context: vscode.ExtensionContext) {
 			}
 		}
 
+		const argsLabel = filterArgs || "None";
+		const kwLabel = keywordFilter || "None";
 		const selected = await vscode.window.showQuickPick(quickPickItems, {
-			placeHolder: "Select a Docker container to attach to",
+			placeHolder: `Select a container  |  Args: ${argsLabel}  |  Keyword: ${kwLabel}`,
 		});
 
 		if (!selected) return;
@@ -106,20 +100,6 @@ export default function (context: vscode.ExtensionContext) {
 		let containerId = selected.id;
 		let containerLabel = selected.label;
 
-		if (selected.id === "__change_filter__") {
-			await vscode.commands.executeCommand("save-commands.configureRemoteFilters");
-			return vscode.commands.executeCommand("save-commands.attachDocker", item);
-		}
-
-		if (selected.id === "__manual__") {
-			const manualId = await vscode.window.showInputBox({
-				placeHolder: "Enter Docker Container ID or Name",
-				prompt: "Type the target Container ID or Name to attach to",
-			});
-			if (!manualId || !manualId.trim()) return;
-			containerId = manualId.trim();
-			containerLabel = manualId.trim();
-		}
 
 		const session = sessionManager.createSession("docker", {
 			containerId: containerId,
