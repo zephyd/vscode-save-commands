@@ -37,6 +37,7 @@ import {
 	remoteNewFolderFn,
 	remotePasteFn,
 	remoteRenameFn,
+	remoteFileDetailsFn,
 	remoteUploadFn,
 	resetFn,
 	runCommandFn,
@@ -583,6 +584,10 @@ export function activate(context: vscode.ExtensionContext) {
 		vscode.commands.registerCommand(
 			"save-commands.remoteRename",
 			remoteRenameFn(context),
+		),
+		vscode.commands.registerCommand(
+			"save-commands.remoteFileDetails",
+			remoteFileDetailsFn(context),
 		),
 		vscode.commands.registerCommand(
 			"save-commands.remoteDelete",

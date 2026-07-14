@@ -29,6 +29,7 @@ import sshConnectFn from "./remote/sshConnect";
 import sshConnectInActiveTerminalFn from "./remote/sshConnectInActiveTerminal";
 import syncExplorerToTerminalFn from "./remote/syncExplorerToTerminal";
 import autoFocusExplorerFn from "./remote/autoFocusExplorer";
+import remoteFileDetailsFn from "./remote/remoteFileDetails";
 import resetFn from "./reset";
 import runCommandFn from "./runCommand";
 import runCommandInActiveTerminalFn from "./runCommandInActiveTerminal";
@@ -72,4 +73,5 @@ export {
 	attachDockerFn,
 	attachK8sFn,
 	configureRemoteFiltersFn,
+	remoteFileDetailsFn,
 };

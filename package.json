@@ -48,6 +48,11 @@
           "default": "",
           "description": "Default Kubernetes Pod name/namespace keyword filter."
         },
+        "save-commands.k8s.initialDir": {
+          "type": "string",
+          "default": "/",
+          "description": "Default initial directory when entering Kubernetes container file explorer."
+        },
         "save-commands.docker.filterArgs": {
           "type": "string",
           "default": "",
@@ -371,6 +376,12 @@
         "icon": "$(edit)"
       },
       {
+        "command": "save-commands.remoteFileDetails",
+        "title": "View File Details",
+        "category": "Save Commands Enhanced",
+        "icon": "$(info)"
+      },
+      {
         "command": "save-commands.remoteDelete",
         "title": "Delete",
         "category": "Save Commands Enhanced",
@@ -428,13 +439,13 @@
         "command": "save-commands.attachDocker",
         "title": "Attach Docker Container...",
         "category": "Save Commands Enhanced",
-        "icon": "$(symbol-class)"
+        "icon": "$(package)"
       },
       {
         "command": "save-commands.attachK8s",
         "title": "Attach Kubernetes Pod...",
         "category": "Save Commands Enhanced",
-        "icon": "$(symbol-interface)"
+        "icon": "$(cloud)"
       },
       {
         "command": "save-commands.disconnectRemote",
@@ -689,12 +700,12 @@
         },
         {
           "command": "save-commands.sshConnect",
-          "group": "inline",
+          "group": "inline@5",
           "when": "view == save-commands-ssh-view && viewItem == sshConnection"
         },
         {
           "command": "save-commands.sshConnectInActiveTerminal",
-          "group": "inline",
+          "group": "inline@6",
           "when": "view == save-commands-ssh-view && viewItem == sshConnection"
         },
         {
@@ -703,7 +714,7 @@
         },
         {
           "command": "save-commands.editSshConnection",
-          "group": "inline",
+          "group": "inline@4",
           "when": "view == save-commands-ssh-view && viewItem == sshConnection"
         },
         {
@@ -723,15 +734,17 @@
         },
         {
           "command": "save-commands.browseRemoteFiles",
-          "group": "inline",
+          "group": "inline@1",
           "when": "view == save-commands-ssh-view && viewItem == sshConnection"
         },
         {
           "command": "save-commands.attachDocker",
+          "group": "inline@2",
           "when": "view == save-commands-ssh-view && viewItem == sshConnection"
         },
         {
           "command": "save-commands.attachK8s",
+          "group": "inline@3",
           "when": "view == save-commands-ssh-view && viewItem == sshConnection"
         },
         {
@@ -762,6 +775,11 @@
         {
           "command": "save-commands.remoteDelete",
           "group": "remoteFileAction@4",
+          "when": "view == save-commands-remote-view"
+        },
+        {
+          "command": "save-commands.remoteFileDetails",
+          "group": "remoteFileAction@5",
           "when": "view == save-commands-remote-view"
         },
         {
