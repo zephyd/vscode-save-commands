@@ -11,6 +11,8 @@ export enum ContextValue {
 	sshConnection = "sshConnection",
 	none = "none",
 	root = "root",
+	filtersRoot = "filtersRoot",
+	filterItem = "filterItem",
 }
 
 class TreeDataProvider implements vscode.TreeDataProvider<TreeItem> {
@@ -24,6 +26,7 @@ class TreeDataProvider implements vscode.TreeDataProvider<TreeItem> {
 	mode: "commands" | "ssh";
 	private showSshGroups = false;
 	private showCommandsGroups = false;
+	private showAttachFilters = false;
 
 	constructor(
 		context: vscode.ExtensionContext,
@@ -62,6 +65,11 @@ class TreeDataProvider implements vscode.TreeDataProvider<TreeItem> {
 			"save-commands.show-ssh-groups",
 			this.showSshGroups,
 		);
+		this.refresh();
+	}
+
+	toggleAttachFilters(): void {
+		this.showAttachFilters = !this.showAttachFilters;
 		this.refresh();
 	}
 
@@ -156,6 +164,95 @@ class TreeDataProvider implements vscode.TreeDataProvider<TreeItem> {
 		}
 
 		return filteredItems;
+	}
+
+	private createFiltersTreeItem(): TreeItem {
+		const config = vscode.workspace.getConfiguration("save-commands");
+		const k8sNamespace = config.get<string>("k8s.namespaceFilter") || "None";
+		const k8sKeyword = config.get<string>("k8s.keywordFilter") || "None";
+		const dockerArgs = config.get<string>("docker.filterArgs") || "None";
+		const dockerKeyword = config.get<string>("docker.keywordFilter") || "None";
+
+		const children = [
+			new TreeItem({
+				id: "filter-k8s-namespace",
+				label: `K8s Namespace: ${k8sNamespace}`,
+				tooltip: "Click to edit Kubernetes Namespace filter",
+				contextValue: ContextValue.filterItem,
+				stateType: StateType.global,
+				command: {
+					command: "save-commands.editFilterItem",
+					title: "Edit K8s Namespace Filter",
+					arguments: [
+						"k8s.namespaceFilter",
+						"Kubernetes Namespace",
+						k8sNamespace === "None" ? "" : k8sNamespace,
+						"e.g. default"
+					]
+				}
+			}),
+			new TreeItem({
+				id: "filter-k8s-keyword",
+				label: `K8s Keyword: ${k8sKeyword}`,
+				tooltip: "Click to edit Kubernetes Pod Keyword filter (space/comma separated)",
+				contextValue: ContextValue.filterItem,
+				stateType: StateType.global,
+				command: {
+					command: "save-commands.editFilterItem",
+					title: "Edit K8s Keyword Filter",
+					arguments: [
+						"k8s.keywordFilter",
+						"Kubernetes Pod Keyword",
+						k8sKeyword === "None" ? "" : k8sKeyword,
+						"e.g. nginx proxy (separated by space/comma)"
+					]
+				}
+			}),
+			new TreeItem({
+				id: "filter-docker-args",
+				label: `Docker Args: ${dockerArgs}`,
+				tooltip: "Click to edit Docker ps filter arguments",
+				contextValue: ContextValue.filterItem,
+				stateType: StateType.global,
+				command: {
+					command: "save-commands.editFilterItem",
+					title: "Edit Docker Args Filter",
+					arguments: [
+						"docker.filterArgs",
+						"Docker ps Arguments",
+						dockerArgs === "None" ? "" : dockerArgs,
+						"e.g. -f status=running"
+					]
+				}
+			}),
+			new TreeItem({
+				id: "filter-docker-keyword",
+				label: `Docker Keyword: ${dockerKeyword}`,
+				tooltip: "Click to edit Docker container name/image Keyword filter (space/comma separated)",
+				contextValue: ContextValue.filterItem,
+				stateType: StateType.global,
+				command: {
+					command: "save-commands.editFilterItem",
+					title: "Edit Docker Keyword Filter",
+					arguments: [
+						"docker.keywordFilter",
+						"Docker container Keyword",
+						dockerKeyword === "None" ? "" : dockerKeyword,
+						"e.g. web api (separated by space/comma)"
+					]
+				}
+			})
+		];
+
+		return new TreeItem({
+			id: "attach-filters-root",
+			label: "Attach Filters Config",
+			tooltip: "Configure Kubernetes and Docker attach filters directly",
+			contextValue: ContextValue.filtersRoot,
+			stateType: StateType.global,
+			collapsibleState: vscode.TreeItemCollapsibleState.Expanded,
+			children: children
+		});
 	}
 
 	refreshData(): void {
@@ -318,6 +415,9 @@ class TreeDataProvider implements vscode.TreeDataProvider<TreeItem> {
 						}),
 					);
 				}
+				if (this.showAttachFilters) {
+					this.data.push(this.createFiltersTreeItem());
+				}
 			} else {
 				this.data = [...globalSshItems, ...workspaceSshItems];
 				if (this.data.length === 0) {
@@ -329,6 +429,9 @@ class TreeDataProvider implements vscode.TreeDataProvider<TreeItem> {
 							stateType: StateType.global,
 						}),
 					];
+				}
+				if (this.showAttachFilters) {
+					this.data.push(this.createFiltersTreeItem());
 				}
 			}
 		}

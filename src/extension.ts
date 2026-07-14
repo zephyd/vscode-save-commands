@@ -16,6 +16,7 @@ import {
 	addSshConnectionFn,
 	attachDockerFn,
 	attachK8sFn,
+	configureRemoteFiltersFn,
 	browseRemoteFilesFn,
 	copyCommandFn,
 	deleteCommandFn,
@@ -254,6 +255,31 @@ export function activate(context: vscode.ExtensionContext) {
 				vscode.window.showErrorMessage(`Failed to save SSH Connection: ${e}`);
 			}
 		},
+	);
+
+
+
+	vscode.commands.registerCommand(
+		"save-commands.editFilterItem",
+		async (key: string, label: string, currentValue: string, placeholder?: string) => {
+			const newVal = await vscode.window.showInputBox({
+				prompt: `Edit ${label}`,
+				value: currentValue,
+				placeHolder: placeholder,
+			});
+			if (newVal === undefined) return;
+
+			const config = vscode.workspace.getConfiguration("save-commands");
+			const target =
+				vscode.workspace.workspaceFolders &&
+				vscode.workspace.workspaceFolders.length > 0
+					? vscode.ConfigurationTarget.Workspace
+					: vscode.ConfigurationTarget.Global;
+
+			await config.update(key, newVal.trim(), target);
+			sshTreeView.refresh();
+			vscode.window.showInformationMessage(`Updated ${label} successfully.`);
+		}
 	);
 
 	vscode.commands.registerCommand(
@@ -601,6 +627,10 @@ export function activate(context: vscode.ExtensionContext) {
 		vscode.commands.registerCommand(
 			"save-commands.attachK8s",
 			attachK8sFn(context),
+		),
+		vscode.commands.registerCommand(
+			"save-commands.configureRemoteFilters",
+			configureRemoteFiltersFn(context, sshTreeView),
 		),
 	);
 }

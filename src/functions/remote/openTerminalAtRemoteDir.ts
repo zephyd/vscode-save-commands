@@ -55,7 +55,7 @@ export default function (context: vscode.ExtensionContext, reuse = false) {
 			terminal.show();
 		} else if (session.type === "ssh" && session.sshConnection) {
 			const conn = session.sshConnection;
-			const sshCommand = `ssh -o StrictHostKeyChecking=no ${conn.username}@${conn.host} -p ${conn.port}`;
+			const sshCommand = `ssh -o StrictHostKeyChecking=no -o ServerAliveInterval=60 -o ServerAliveCountMax=3 ${conn.username}@${conn.host} -p ${conn.port}`;
 			const terminalId = `SSH-${conn.name}-${generateString(5)}`;
 
 			const terminal = vscode.window.createTerminal(terminalId) as any;
@@ -78,7 +78,7 @@ export default function (context: vscode.ExtensionContext, reuse = false) {
 			const targetCmd = `docker exec -w "${targetPath}" -it ${containerId} sh`;
 			if (session.sshConnection) {
 				const conn = session.sshConnection;
-				const sshCommand = `ssh -o StrictHostKeyChecking=no ${conn.username}@${conn.host} -p ${conn.port}`;
+				const sshCommand = `ssh -o StrictHostKeyChecking=no -o ServerAliveInterval=60 -o ServerAliveCountMax=3 ${conn.username}@${conn.host} -p ${conn.port}`;
 				const terminalId = `Docker-SSH-${conn.name}-${generateString(5)}`;
 				const terminal = vscode.window.createTerminal(terminalId) as any;
 				terminal._sessionId = session.id;
@@ -116,10 +116,10 @@ export default function (context: vscode.ExtensionContext, reuse = false) {
 			const containerArg = session.containerName
 				? `-c ${session.containerName}`
 				: "";
-			const targetCmd = `kubectl exec -it ${session.podName} -n ${session.namespace} ${containerArg} -- sh -c "cd '${targetPath}' && (command -v bash >/dev/null 2>&1 && exec bash || exec sh)"`;
+			const targetCmd = `kubectl exec -it ${session.podName} -n ${session.namespace} ${containerArg} -- sh -c "(while true; do sleep 30; printf '\\\0' 2>/dev/null; done &) && cd '${targetPath}' && (command -v bash >/dev/null 2>&1 && exec bash || exec sh)"`;
 			if (session.sshConnection) {
 				const conn = session.sshConnection;
-				const sshCommand = `ssh -o StrictHostKeyChecking=no ${conn.username}@${conn.host} -p ${conn.port}`;
+				const sshCommand = `ssh -o StrictHostKeyChecking=no -o ServerAliveInterval=60 -o ServerAliveCountMax=3 ${conn.username}@${conn.host} -p ${conn.port}`;
 				const terminalId = `K8s-SSH-${conn.name}-${generateString(5)}`;
 				const terminal = vscode.window.createTerminal(terminalId) as any;
 				terminal._sessionId = session.id;

@@ -37,6 +37,26 @@
             "<name>",
             "<<name>>"
           ]
+        },
+        "save-commands.k8s.namespaceFilter": {
+          "type": "string",
+          "default": "",
+          "description": "Default Kubernetes Namespace to filter Pod listing."
+        },
+        "save-commands.k8s.keywordFilter": {
+          "type": "string",
+          "default": "",
+          "description": "Default Kubernetes Pod name/namespace keyword filter."
+        },
+        "save-commands.docker.filterArgs": {
+          "type": "string",
+          "default": "",
+          "description": "Additional filter arguments for docker ps command (e.g. '-f status=running')."
+        },
+        "save-commands.docker.keywordFilter": {
+          "type": "string",
+          "default": "",
+          "description": "Default Docker container name/image keyword filter."
         }
       }
     },
@@ -421,6 +441,12 @@
         "title": "Disconnect Remote Connection",
         "category": "Save Commands Enhanced",
         "icon": "$(debug-disconnect)"
+      },
+      {
+        "command": "save-commands.configureRemoteFilters",
+        "title": "Configure Remote Attach Filters...",
+        "category": "Save Commands Enhanced",
+        "icon": "$(gear)"
       }
     ],
     "viewsContainers": {
@@ -523,6 +549,11 @@
           "command": "save-commands.addGlobalSshConnection",
           "when": "view == save-commands-ssh-view",
           "group": "navigation@0.8"
+        },
+        {
+          "command": "save-commands.configureRemoteFilters",
+          "when": "view == save-commands-ssh-view",
+          "group": "navigation@0.7"
         },
         {
           "command": "save-commands.addGlobalCommand",

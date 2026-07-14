@@ -9,6 +9,7 @@ import editFolderFn from "./editFolder";
 import addSshConnectionFn from "./remote/addSshConnection";
 import attachDockerFn from "./remote/attachDocker";
 import attachK8sFn from "./remote/attachK8s";
+import configureRemoteFiltersFn from "./remote/configureRemoteFilters";
 import browseRemoteFilesFn from "./remote/browseRemoteFiles";
 import deleteSshConnectionFn from "./remote/deleteSshConnection";
 import editSshConnectionFn from "./remote/editSshConnection";
@@ -70,4 +71,5 @@ export {
 	remoteUploadFn,
 	attachDockerFn,
 	attachK8sFn,
+	configureRemoteFiltersFn,
 };

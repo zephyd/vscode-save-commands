@@ -18,22 +18,28 @@ class TreeItem extends vscode.TreeItem {
 		parentFolderId?: string | null;
 		sortOrder?: number;
 		stateType: StateType;
+		collapsibleState?: vscode.TreeItemCollapsibleState;
+		iconPath?: vscode.ThemeIcon;
+		command?: vscode.Command;
 	}) {
 		// Roots should always be expanded
-		let collapsibleState = vscode.TreeItemCollapsibleState.None;
-		if (
-			fields.contextValue &&
-			(fields.contextValue as string).startsWith("root")
-		) {
-			collapsibleState = vscode.TreeItemCollapsibleState.Expanded;
-		} else if (fields.contextValue === ContextValue.folder) {
-			// Folders should always be collapsible even if empty, so they can be drop targets.
-			// If they have children initially (like roots), we expand them.
-			// Otherwise they start Collapsed but remain folders.
-			collapsibleState =
-				fields.children && fields.children.length > 0
-					? vscode.TreeItemCollapsibleState.Expanded
-					: vscode.TreeItemCollapsibleState.Collapsed;
+		let collapsibleState = fields.collapsibleState;
+		if (collapsibleState === undefined) {
+			collapsibleState = vscode.TreeItemCollapsibleState.None;
+			if (
+				fields.contextValue &&
+				(fields.contextValue as string).startsWith("root")
+			) {
+				collapsibleState = vscode.TreeItemCollapsibleState.Expanded;
+			} else if (fields.contextValue === ContextValue.folder) {
+				// Folders should always be collapsible even if empty, so they can be drop targets.
+				// If they have children initially (like roots), we expand them.
+				// Otherwise they start Collapsed but remain folders.
+				collapsibleState =
+					fields.children && fields.children.length > 0
+						? vscode.TreeItemCollapsibleState.Expanded
+						: vscode.TreeItemCollapsibleState.Collapsed;
+			}
 		}
 
 		super(fields.label, collapsibleState);
@@ -45,23 +51,33 @@ class TreeItem extends vscode.TreeItem {
 		this.sortOrder = fields.sortOrder;
 		this.stateType = fields.stateType;
 
-		if (this.contextValue === ContextValue.folder) {
+		if (fields.iconPath) {
+			this.iconPath = fields.iconPath;
+		} else if (this.contextValue === ContextValue.folder) {
 			this.iconPath = new vscode.ThemeIcon("folder");
 		} else if (this.contextValue === ContextValue.command) {
 			this.iconPath = new vscode.ThemeIcon("terminal");
 			// Using the double-click-safe command registered in extension.ts
-			this.command = {
+			this.command = fields.command || {
 				command: "save-commands.editCommandDouble",
 				title: "Edit Command",
 				arguments: [this],
 			};
 		} else if (this.contextValue === ContextValue.sshConnection) {
 			this.iconPath = new vscode.ThemeIcon("remote");
-			this.command = {
+			this.command = fields.command || {
 				command: "save-commands.editSshConnectionDouble",
 				title: "Edit SSH Connection",
 				arguments: [this],
 			};
+		} else if (this.contextValue === ContextValue.filtersRoot) {
+			this.iconPath = new vscode.ThemeIcon("settings");
+		} else if (this.contextValue === ContextValue.filterItem) {
+			this.iconPath = new vscode.ThemeIcon("gear");
+		}
+
+		if (fields.command) {
+			this.command = fields.command;
 		}
 	}
 }

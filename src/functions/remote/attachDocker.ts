@@ -17,18 +17,22 @@ export default function (context: vscode.ExtensionContext) {
 			} catch (e) {}
 		}
 
+		const config = vscode.workspace.getConfiguration("save-commands");
+		const filterArgs = config.get<string>("docker.filterArgs") || "";
+		const keywordFilter = config.get<string>("docker.keywordFilter") || "";
+
 		let rawOutput: Buffer | undefined;
 		try {
+			const filterArg = filterArgs.trim() ? ` ${filterArgs.trim()}` : "";
+			const cmd = `docker ps${filterArg} --format "{{.ID}}\\t{{.Names}}\\t{{.Image}}\\t{{.Status}}"`;
 			if (conn) {
 				const session = await sshPool.getSSH(conn);
 				rawOutput = await execSsh(
 					session.client,
-					'docker ps --format "{{.ID}}\\t{{.Names}}\\t{{.Image}}\\t{{.Status}}"',
+					cmd,
 				);
 			} else {
-				rawOutput = await execLocal(
-					'docker ps --format "{{.ID}}\\t{{.Names}}\\t{{.Image}}\\t{{.Status}}"',
-				);
+				rawOutput = await execLocal(cmd);
 			}
 		} catch (e: any) {
 			let errMsg = e.message || e;
@@ -47,6 +51,12 @@ export default function (context: vscode.ExtensionContext) {
 
 		const quickPickItems = [
 			{
+				label: "$(search) Change filters...",
+				description: `Current: Args="${filterArgs || "None"}", Keyword="${keywordFilter || "None"}"`,
+				detail: "Change the docker ps arguments and container keyword filters",
+				id: "__change_filter__",
+			},
+			{
 				label: "$(pencil) Enter container ID/Name manually...",
 				description: "Skip list search and input target name directly",
 				detail: "",
@@ -61,12 +71,23 @@ export default function (context: vscode.ExtensionContext) {
 				.map((l) => l.trim())
 				.filter((l) => l !== "");
 
+			const keywords = keywordFilter.trim().toLowerCase().split(/[\s,]+/).filter(Boolean);
+
 			for (const line of lines) {
 				const parts = line.split("\t");
 				const id = parts[0];
 				const name = parts[1] || "Unnamed";
 				const image = parts[2] || "Unknown Image";
 				const status = parts[3] || "";
+
+				if (keywords.length > 0) {
+					const matched = keywords.some(
+						(kw) =>
+							name.toLowerCase().includes(kw) ||
+							image.toLowerCase().includes(kw)
+					);
+					if (!matched) continue;
+				}
 				quickPickItems.push({
 					label: name,
 					description: `${image} (${id})`,
@@ -84,6 +105,11 @@ export default function (context: vscode.ExtensionContext) {
 
 		let containerId = selected.id;
 		let containerLabel = selected.label;
+
+		if (selected.id === "__change_filter__") {
+			await vscode.commands.executeCommand("save-commands.configureRemoteFilters");
+			return vscode.commands.executeCommand("save-commands.attachDocker", item);
+		}
 
 		if (selected.id === "__manual__") {
 			const manualId = await vscode.window.showInputBox({

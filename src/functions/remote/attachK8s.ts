@@ -17,9 +17,14 @@ export default function (context: vscode.ExtensionContext) {
 			} catch (e) {}
 		}
 
+		const config = vscode.workspace.getConfiguration("save-commands");
+		const namespaceFilter = config.get<string>("k8s.namespaceFilter") || "";
+		const keywordFilter = config.get<string>("k8s.keywordFilter") || "";
+
 		let rawOutput: Buffer | undefined;
 		try {
-			const cmd = `kubectl get pods -A -o jsonpath='{range .items[*]}{.metadata.namespace}{"\\t"}{.metadata.name}{"\\t"}{range .spec.containers[*]}{.name}{","}{end}{"\\n"}{end}'`;
+			const namespaceArg = namespaceFilter.trim() ? `-n ${namespaceFilter.trim()}` : "-A";
+			const cmd = `kubectl get pods ${namespaceArg} -o jsonpath='{range .items[*]}{.metadata.namespace}{"\\t"}{.metadata.name}{"\\t"}{range .spec.containers[*]}{.name}{","}{end}{"\\n"}{end}'`;
 			if (conn) {
 				const session = await sshPool.getSSH(conn);
 				rawOutput = await execSsh(session.client, cmd);
@@ -33,6 +38,14 @@ export default function (context: vscode.ExtensionContext) {
 		}
 
 		const quickPickItems = [
+			{
+				label: "$(search) Change filters...",
+				description: `Current: Namespace="${namespaceFilter || "All"}", Keyword="${keywordFilter || "None"}"`,
+				detail: "Change the namespace and keyword filters used to list pods",
+				podName: "__change_filter__",
+				namespace: "",
+				containers: [] as string[],
+			},
 			{
 				label: "$(pencil) Enter pod details manually...",
 				description: "Skip list search and input namespace/pod name directly",
@@ -50,11 +63,22 @@ export default function (context: vscode.ExtensionContext) {
 				.map((l) => l.trim())
 				.filter((l) => l !== "");
 
+			const keywords = keywordFilter.trim().toLowerCase().split(/[\s,]+/).filter(Boolean);
+
 			for (const line of lines) {
 				const parts = line.split("\t");
 				const namespace = parts[0];
 				const podName = parts[1];
 				const containers = (parts[2] || "").split(",").filter((c) => c !== "");
+
+				if (keywords.length > 0) {
+					const matched = keywords.some(
+						(kw) =>
+							podName.toLowerCase().includes(kw) ||
+							namespace.toLowerCase().includes(kw)
+					);
+					if (!matched) continue;
+				}
 				quickPickItems.push({
 					label: podName,
 					description: `Namespace: ${namespace}`,
@@ -75,6 +99,11 @@ export default function (context: vscode.ExtensionContext) {
 		let namespace = selectedPod.namespace;
 		let podName = selectedPod.podName;
 		let containerName: string | undefined;
+
+		if (selectedPod.podName === "__change_filter__") {
+			await vscode.commands.executeCommand("save-commands.configureRemoteFilters");
+			return vscode.commands.executeCommand("save-commands.attachK8s", item);
+		}
 
 		if (selectedPod.podName === "__manual__") {
 			const manualNs = await vscode.window.showInputBox({
